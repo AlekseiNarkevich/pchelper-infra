@@ -1,0 +1,5 @@
+﻿# Каталоги и файлы, которые Prettier не форматирует.
+node_modules/
+coverage/
+dist/
+package-lock.json

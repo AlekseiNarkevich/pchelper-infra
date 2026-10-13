@@ -79,7 +79,12 @@ export function createApp() {
   });
 
   // 500: необработанная ошибка в одном из маршрутов.
-  app.use((err, req, res, next) => {
+  // Обработчик ошибок Express обязан принимать ровно четыре аргумента
+  // (err, req, res, next) — иначе Express не признает его обработчиком.
+  // Сам next здесь не нужен, поэтому он назван с подчёркиванием:
+  // правило no-unused-vars разрешает неиспользуемые аргументы,
+  // начинающиеся с «_».
+  app.use((err, req, res, _next) => {
     console.error('[api] необработанная ошибка:', err.message);
     res.status(500).json({
       error: { code: 'INTERNAL_ERROR', message: err.message || 'Ошибка сервера' },
