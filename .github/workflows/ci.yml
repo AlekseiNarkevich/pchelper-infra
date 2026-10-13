@@ -51,8 +51,15 @@ env:
   # Без префикса ghcr.io/ buildx воспримет «AlekseiNarkevich»
   # как имя хоста и упадёт с ошибкой:
   #   dial tcp: lookup AlekseiNarkevich: no such host
-  API_IMAGE: ghcr.io/${{ github.repository }}/api
-  WEB_IMAGE: ghcr.io/${{ github.repository }}/web
+  # Имя владельца пишется строчными буквами НАМЕРЕННО.
+  # Docker требует, чтобы имя репозитория образа было в нижнем
+  # регистре, а на GitHub у владельца есть заглавные буквы.
+  # Подстановка ${{ github.repository_owner }} даст «AlekseiNarkevich»
+  # и сборка упадёт с ошибкой:
+  #   repository name must be lowercase
+  IMAGE_OWNER: alekseinarkevich
+  API_IMAGE: ghcr.io/alekseinarkevich/pchelper-infra/api
+  WEB_IMAGE: ghcr.io/alekseinarkevich/pchelper-infra/web
 
 jobs:
   # -------------------------------------------------------------------
@@ -65,9 +72,9 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm
@@ -101,9 +108,9 @@ jobs:
     needs: lint
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm
@@ -121,7 +128,7 @@ jobs:
 
       - name: Отчёт о покрытии
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: coverage
           path: backend/coverage/
@@ -139,9 +146,9 @@ jobs:
     needs: lint
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
 
@@ -161,7 +168,7 @@ jobs:
           npx @redocly/cli build-docs api/dist/openapi.bundled.yaml \
             --output api/dist/swagger.json
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: swagger-docs
           path: api/dist/
@@ -185,17 +192,17 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0 # полная история коммитов для blame
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: backend/package-lock.json
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -215,13 +222,13 @@ jobs:
           echo "Токен SonarQube найден"
 
       - name: Загрузить отчёт о покрытии
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: coverage
           path: backend/coverage
 
       - name: SonarScanner — анализ и ожидание Quality Gate
-        uses: SonarSource/sonarqube-scan-action@v5
+        uses: SonarSource/sonarqube-scan-action@v6
         env:
           # ОБЯЗАТЕЛЬНО для SonarCloud. Без этой переменной сканер
           # обращается к http://localhost:9000, где ничего не запущено,
@@ -257,7 +264,7 @@ jobs:
       packages: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - uses: docker/setup-buildx-action@v3
 
