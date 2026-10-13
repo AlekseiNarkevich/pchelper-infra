@@ -1,0 +1,195 @@
+# =====================================================================
+#  PCHelper — оркестрация окружения разработки
+#  Лабораторная работа № 4, задание 6, пункт 8.
+#
+#  ВАЖНО: compose собирает МИНИМАЛЬНЫЙ сервис из infra/backend.
+#  Он не является частью курсовой работы и никак не связан с исходным
+#  кодом приложения из папки «Курсовая работа/Приложение/pchelper».
+#
+#  Основные команды:
+#      docker compose up -d --build              поднять всё окружение
+#      docker compose up -d postgres redis       только инфраструктура
+#      docker compose --profile test run --rm tests   прогнать smoke-тесты
+#      docker compose --profile mcp  up -d mcp   поднять MCP-сервер
+#      docker compose ps                         состояние контейнеров
+#      docker compose logs -f api                логи backend
+#      docker compose down                       остановить
+#      docker compose down -v                    остановить и удалить тома
+# =====================================================================
+
+name: pchelper
+
+services:
+
+  # -------------------------------------------------------------------
+  # База данных PostgreSQL 15
+  # -------------------------------------------------------------------
+  postgres:
+    image: postgres:15-alpine
+    container_name: pchelper-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-pchelper}
+      POSTGRES_USER: ${POSTGRES_USER:-pchelper}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pchelper_dev_password}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+      TZ: Europe/Minsk
+    volumes:
+      # Именованный том: данные переживают пересоздание контейнера
+      - pgdata:/var/lib/postgresql/data
+      # Схема применяется автоматически при ПЕРВОМ запуске: файлы из db/
+      # выполняются в алфавитном порядке 01 → 02 → 03 → 04 → 05
+      - ../db:/docker-entrypoint-initdb.d:ro
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks: [pchelper-net]
+    healthcheck:
+      # pg_isready отвечает «ok», когда сервер готов принимать соединения
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pchelper} -d ${POSTGRES_DB:-pchelper}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # -------------------------------------------------------------------
+  # Кэш сессий и ответов каталога
+  # -------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: pchelper-redis
+    restart: unless-stopped
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:-pchelper_redis_password}
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+    volumes:
+      - redisdata:/data
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    networks: [pchelper-net]
+    healthcheck:
+      # redis-cli ping без пароля вернёт NOAUTH, поэтому пароль обязателен
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-pchelper_redis_password}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # -------------------------------------------------------------------
+  # Backend — Node.js 20 + Express, REST API /api/v1
+  # -------------------------------------------------------------------
+  api:
+    build:
+      context: ./backend
+      target: prod
+      dockerfile: Dockerfile
+    image: pchelper/api:1.0.0
+    container_name: pchelper-api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      APP_VERSION: 1.0.0
+      # Токен для проверки роли manager в демо-маршруте /api/v1/admin/orders
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-dev-admin-token}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-pchelper}:${POSTGRES_PASSWORD:-pchelper_dev_password}@postgres:5432/${POSTGRES_DB:-pchelper}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-pchelper_redis_password}@redis:6379
+      JWT_SECRET: ${JWT_SECRET:-change_me_in_production}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8080}
+      SUPABASE_URL: ${SUPABASE_URL:-}
+      SUPABASE_KEY: ${SUPABASE_KEY:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+    ports:
+      - "${API_PORT:-3001}:3001"
+    networks: [pchelper-net]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/api/v1/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  # -------------------------------------------------------------------
+  # Frontend — статика, отдаваемая nginx
+  # (в рабочем проекте это собранный React + Vite, здесь — демо-страница)
+  # -------------------------------------------------------------------
+  web:
+    build:
+      context: ./frontend
+      target: prod
+      dockerfile: Dockerfile
+    image: pchelper/web:1.0.0
+    container_name: pchelper-web
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    networks: [pchelper-net]
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # -------------------------------------------------------------------
+  # Smoke-тесты (профиль test) — конвейер CI выполняет их ДО сборки образа
+  # -------------------------------------------------------------------
+  tests:
+    build:
+      context: ./backend
+      target: dev
+      dockerfile: Dockerfile
+    image: pchelper/tests:1.0.0
+    container_name: pchelper-tests
+    profiles: [test]
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NODE_ENV: test
+      CI: "true"
+      # Адрес backend во внутренней сети compose (не localhost!)
+      BASE_URL: http://api:3001
+      ADMIN_TOKEN: ${ADMIN_TOKEN:-dev-admin-token}
+    command: ["npm", "run", "test:smoke"]
+    networks: [pchelper-net]
+
+  # -------------------------------------------------------------------
+  # MCP-сервер (профиль mcp) — Python 3.12 + MCP Python SDK
+  # -------------------------------------------------------------------
+  mcp:
+    build:
+      context: ../mcp
+      dockerfile: Dockerfile
+    image: pchelper/mcp:1.0.0
+    container_name: pchelper-mcp
+    restart: unless-stopped
+    profiles: [mcp]
+    environment:
+      PCHELPER_AGENT_NAME: ${PCHELPER_AGENT_NAME:-docker}
+      # Путь к mock-базе внутри контейнера (каталог /data принадлежит
+      # пользователю mcp, см. mcp/Dockerfile)
+      PCHELPER_DB: /data/pchelper_mcp.db
+    volumes:
+      - mcpdata:/data
+    ports:
+      - "${MCP_PORT:-8081}:8080"
+    networks: [pchelper-net]
+
+volumes:
+  pgdata:
+  redisdata:
+  mcpdata:
+
+networks:
+  pchelper-net:
+    driver: bridge

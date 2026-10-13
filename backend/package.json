@@ -1,0 +1,21 @@
+{
+  "name": "pchelper-infra-backend",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Минимальный backend для инфраструктуры ЛР4 (задание 6). Не является частью курсовой работы.",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node --test tests/health.test.js",
+    "test:smoke": "node --test tests/smoke.test.js",
+    "test:ci": "node --test tests/health.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

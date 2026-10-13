@@ -1,0 +1,2139 @@
+openapi: 3.0.3
+
+info:
+  title: PCHelper API
+  version: 1.0.0
+  description: |
+    REST API интернет-магазина компьютерных комплектующих **PCHelper**
+    с конфигуратором сборки ПК и MCP-сервером.
+
+    ## Соглашения
+    * Базовый URL версионируется префиксом пути: `/api/v1`.
+    * Все тела запросов и ответов — `application/json; charset=utf-8`.
+    * Даты и время — ISO 8601 в формате UTC: `2026-10-13T09:15:00Z`.
+    * Денежные величины — целые числа в белорусских рублях (BYN), без копеек.
+    * Идентификаторы — целые числа (`integer`), компоненты каталога имеют
+      собственные пространства идентификаторов, поэтому всегда передаются
+      вместе с типом (`componentType` + `componentId`).
+    * Пагинация — постраничная: `page` (с 1) и `limit` (по умолчанию 20, максимум 100).
+
+    ## Аутентификация
+    * `POST /auth/login` возвращает пару токенов: `accessToken` (JWT, 30 мин)
+      и `refreshToken` (opaque, 30 дней).
+    * Для всех защищённых конечных точек заголовок
+      `Authorization: Bearer <accessToken>`.
+    * Ошибка `401` означает, что access-токен истёк или неверен —
+      клиент обязан выполнить `POST /auth/refresh`.
+
+    ## Коды ошибок
+    Ошибки возвращаются единообразно (RFC 9457, упрощённо):
+
+    ```json
+    { "error": { "code": "VALIDATION_ERROR", "message": "…", "details": [...] } }
+    ```
+  contact:
+    name: Команда StudentsTrio
+    url: https://pchelper.by
+  license:
+    name: Учебный проект, БГУИС
+    url: https://pchelper.by/license
+
+servers:
+  - url: https://api.pchelper.by/api/v1
+    description: Продакшн
+  - url: http://localhost:3001/api/v1
+    description: Локальная разработка (Docker Compose)
+  - url: https://mock.swagger.io
+    description: Mock-сервер на SwaggerHub / Bruno
+
+tags:
+  - name: Служебные
+    description: Проверка работоспособности и версионирование
+  - name: Аутентификация
+    description: Регистрация, вход, обновление токена
+  - name: Каталог
+    description: Комплектующие, готовые конфигурации, фильтры
+  - name: Конфигуратор
+    description: Шаги сборки, проверка совместимости, расчёт БП
+  - name: Корзина
+    description: Позиции корзины покупателя
+  - name: Заказы
+    description: Оформление и сопровождение заказов
+  - name: Сборки
+    description: Сохранённые конфигурации пользователя
+  - name: Отзывы
+    description: Отзывы и рейтинг товаров
+  - name: Администрирование
+    description: Управление заказами, товарами, остатками, аналитика
+
+security:
+  - bearerAuth: []
+
+# =====================================================================
+#  ПУТИ
+# =====================================================================
+paths:
+
+  # ------------------------- Служебные -------------------------------
+  /health:
+    get:
+      tags: [Служебные]
+      summary: Проверка работоспособности сервиса
+      security: []
+      operationId: getHealth
+      responses:
+        '200':
+          description: Сервис работает
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [status, version, uptimeSeconds]
+                properties:
+                  status:  { type: string, example: ok }
+                  version: { type: string, example: 1.0.0 }
+                  uptimeSeconds: { type: integer, example: 41230 }
+                  database:  { type: string, example: connected }
+              example:
+                status: ok
+                version: 1.0.0
+                uptimeSeconds: 41230
+                database: connected
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  # ------------------------- Аутентификация -------------------------
+  /auth/register:
+    post:
+      tags: [Аутентификация]
+      summary: Регистрация покупателя
+      security: []
+      operationId: register
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/RegisterRequest' }
+            example:
+              email: anna@example.by
+              password: 'Pchelper!2026'
+              имя: 'Анна Ковальчук'
+              телефон: '+375291234567'
+      responses:
+        '201':
+          description: Пользователь создан, возвращается пользователь и токены
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthResponse' }
+        '400':
+          description: Тело запроса некорректно (например, слабый пароль)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error:
+                  code: VALIDATION_ERROR
+                  message: 'Пароль должен содержать не менее 8 символов, цифру и спецсимвол'
+                  details: [{ field: password, issue: too_weak }]
+        '409':
+          description: Пользователь с таким e-mail уже зарегистрирован
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error:
+                  code: EMAIL_ALREADY_EXISTS
+                  message: 'Пользователь с e-mail anna@example.by уже существует'
+
+  /auth/login:
+    post:
+      tags: [Аутентификация]
+      summary: Вход в систему
+      security: []
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:    { type: string, format: email }
+                password: { type: string, format: password }
+            example:
+              email: anna@example.by
+              password: 'Pchelper!2026'
+      responses:
+        '200':
+          description: Успешный вход
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthResponse' }
+        '401':
+          description: Неверные учётные данные
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error:
+                  code: INVALID_CREDENTIALS
+                  message: 'Неверный e-mail или пароль'
+
+  /auth/refresh:
+    post:
+      tags: [Аутентификация]
+      summary: Обновление access-токена
+      security: []
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken: { type: string }
+      responses:
+        '200':
+          description: Новая пара токенов, старый refresh-токен отозван
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthResponse' }
+        '401':
+          description: Refresh-токен недействителен, истёк или отозван
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error: { code: INVALID_REFRESH_TOKEN, message: 'Требуется повторный вход' }
+
+  /auth/me:
+    get:
+      tags: [Аутентификация]
+      summary: Текущий пользователь
+      operationId: getCurrentUser
+      responses:
+        '200':
+          description: Профиль пользователя
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/User' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  # ------------------------- Каталог --------------------------------
+  /catalog/components:
+    get:
+      tags: [Каталог]
+      summary: Список комплектующих с фильтрами и пагинацией
+      security: []
+      operationId: listComponents
+      parameters:
+        - name: type
+          in: query
+          description: Тип компонента; если не задан — по всем типам
+          schema: { $ref: '#/components/schemas/ComponentType' }
+        - name: brand
+          in: query
+          schema: { type: string }
+          example: AMD
+        - name: q
+          in: query
+          description: Полнотекстовый поиск по названию
+          schema: { type: string, maxLength: 100 }
+        - name: minPrice
+          in: query
+          schema: { type: integer, minimum: 0 }
+        - name: maxPrice
+          in: query
+          schema: { type: integer, minimum: 0 }
+        - name: socket
+          in: query
+          description: Фильтр по сокету (процессоры, материнские платы)
+          schema: { type: string }
+          example: AM5
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [price_asc, price_desc, rating_desc, newest]
+            default: price_asc
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Постраничная выборка компонентов
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PagedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items: { $ref: '#/components/schemas/Component' }
+              example:
+                page: 1
+                limit: 20
+                total: 8
+                totalPages: 1
+                items:
+                  - id: 3
+                    componentType: gpu
+                    название: 'AMD Radeon RX 7700 XT'
+                    производитель: AMD
+                    цена: 1299
+                    tdp: 245
+                    фото_url: https://pchelper.by/img/rx7700xt.jpg
+                    характеристики: { объем_памяти: 12, длина: 267, количество_вентиляторов: 2 }
+        '400':
+          description: Некорректные значения параметров фильтрации
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error: { code: INVALID_FILTER, message: 'minPrice не может превышать maxPrice' }
+
+  /catalog/components/{componentId}:
+    get:
+      tags: [Каталог]
+      summary: Карточка компонента
+      security: []
+      operationId: getComponent
+      parameters:
+        - $ref: '#/components/parameters/ComponentIdParam'
+        - $ref: '#/components/parameters/ComponentTypeParam'
+      responses:
+        '200':
+          description: Компонент найден
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Component' }
+        '404':
+          description: Компонент не найден
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error: { code: COMPONENT_NOT_FOUND, message: 'Компонент 999 не найден' }
+
+  /catalog/components/{componentId}/reviews:
+    get:
+      tags: [Отзывы]
+      summary: Отзывы о компоненте
+      security: []
+      operationId: listReviews
+      parameters:
+        - $ref: '#/components/parameters/ComponentIdParam'
+        - $ref: '#/components/parameters/ComponentTypeParam'
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Список опубликованных отзывов
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PagedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items: { $ref: '#/components/schemas/Review' }
+        '404':
+          description: Компонент не найден
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+    post:
+      tags: [Отзывы]
+      summary: Оставить отзыв о компоненте
+      operationId: createReview
+      parameters:
+        - $ref: '#/components/parameters/ComponentIdParam'
+        - $ref: '#/components/parameters/ComponentTypeParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [оценка]
+              properties:
+                оценка: { type: integer, minimum: 1, maximum: 5 }
+                текст:  { type: string, maxLength: 2000 }
+            example:
+              оценка: 5
+              текст: 'Отличная карта, тянет 1440p в 165 fps'
+      responses:
+        '201':
+          description: Отзыв отправлен на модерацию
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Review' }
+        '400':
+          description: Оценка вне диапазона 1…5
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409':
+          description: Пользователь уже оставлял отзыв об этом компоненте
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /configurator/compatible:
+    get:
+      tags: [Конфигуратор]
+      summary: Совместимые компоненты для текущего шага конфигуратора
+      description: |
+        Возвращает список идентификаторов компонентов, совместимых с уже
+        выбранной частичной конфигурацией. Используется фронтендом для
+        автоматической фильтрации на каждом из 8 шагов.
+        Соответствует шагу 2 ТЗ: «На каждом шаге отображаются только
+        совместимые компоненты».
+      security: []
+      operationId: listCompatible
+      parameters:
+        - name: step
+          in: query
+          required: true
+          description: Шаг конфигуратора, для которого подбираются компоненты
+          schema:
+            type: string
+            enum: [cpu, motherboard, ram, cooling, gpu, storage, psu, case]
+        - name: cpu
+          in: query
+          description: Идентификатор уже выбранного процессора
+          schema: { type: integer }
+        - name: motherboard
+          in: query
+          schema: { type: integer }
+        - name: ram
+          in: query
+          schema: { type: integer }
+        - name: cooling
+          in: query
+          schema: { type: integer }
+        - name: gpu
+          in: query
+          schema: { type: integer }
+        - name: psu
+          in: query
+          schema: { type: integer }
+        - name: case
+          in: query
+          schema: { type: integer }
+      responses:
+        '200':
+          description: Список идентификаторов совместимых компонентов
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [step, candidateIds, total]
+                properties:
+                  step:       { type: string }
+                  candidateIds:
+                    type: array
+                    items: { type: integer }
+                  total:      { type: integer }
+              example:
+                step: motherboard
+                candidateIds: [1]
+                total: 1
+        '400':
+          description: Некорректное имя шага
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error: { code: VALIDATION_ERROR, message: 'Неизвестный шаг «ram2»' }
+
+  /catalog/filters:
+    get:
+      tags: [Каталог]
+      summary: Справочник значений для фильтров каталога
+      security: []
+      operationId: getFilters
+      responses:
+        '200':
+          description: Доступные значения фильтров
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/FilterDictionary' }
+              example:
+                sockets: [AM4, AM5, LGA1700, LGA1851]
+                memoryTypes: [DDR4, DDR5]
+                formFactors: [Mini-ITX, Micro-ATX, ATX, E-ATX]
+                brands: [AMD, Intel, NVIDIA, ASUS, MSI, Kingston, WD]
+                priceRange: { min: 45, max: 5299 }
+
+  /catalog/prebuilt:
+    get:
+      tags: [Каталог]
+      summary: Готовые конфигурации
+      security: []
+      operationId: listPrebuilt
+      parameters:
+        - name: task
+          in: query
+          description: Фильтр по назначению сборки
+          schema:
+            type: string
+            enum: [Игры, Офис, Учёба, Дизайн, Видеомонтаж]
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Список готовых конфигураций
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PagedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items: { $ref: '#/components/schemas/Prebuilt' }
+        '400':
+          description: Неизвестное значение task
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /catalog/prebuilt/{configId}:
+    get:
+      tags: [Каталог]
+      summary: Готовая конфигурация с составом и ценой
+      security: []
+      operationId: getPrebuilt
+      parameters:
+        - name: configId
+          in: path
+          required: true
+          schema: { type: integer, minimum: 1 }
+      responses:
+        '200':
+          description: Конфигурация с развёрнутым составом
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Prebuilt' }
+        '404':
+          description: Конфигурация не найдена
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error: { code: PREBUILT_NOT_FOUND, message: 'Конфигурация 42 не найдена' }
+
+  # ------------------------- Конфигуратор ---------------------------
+  /configurator/steps:
+    get:
+      tags: [Конфигуратор]
+      summary: Описание 8 шагов конфигуратора
+      security: []
+      operationId: getConfiguratorSteps
+      responses:
+        '200':
+          description: Метаданные шагов конфигуратора
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/ConfiguratorStep' }
+              example:
+                - number: 1
+                  componentType: cpu
+                  title: 'Процессор'
+                  required: true
+                  filterBy: []
+                - number: 2
+                  componentType: motherboard
+                  title: 'Материнская плата'
+                  required: true
+                  filterBy: [socket]
+
+  /configurator/validate:
+    post:
+      tags: [Конфигуратор]
+      summary: Проверка совместимости конфигурации
+      description: |
+        Прогоняет 8 правил совместимости:
+        1) сокет процессора и платы;
+        2) тип памяти платы и ОЗУ;
+        3) иерархия форм-факторов (Mini-ITX < Micro-ATX < ATX < E-ATX);
+        4) длина видеокарты и максимум корпуса;
+        5) TDP процессора и охлаждения;
+        6) высота кулера / длина радиатора СЖО;
+        7) мощность БП ≥ (TDP CPU + TDP GPU) × 1.25;
+        8) ровно один SSD и не более одного HDD.
+      security: []
+      operationId: validateBuild
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/BuildInput' }
+            example:
+              cpuId: 1
+              motherboardId: 2
+              ramId: 4
+              coolingId: 3
+              gpuId: 5
+              storageIds: [7]
+              psuId: 6
+              caseId: 8
+      responses:
+        '200':
+          description: Проверка выполнена; результат может быть как совместимым, так и нет
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CompatibilityResult' }
+              example:
+                compatible: false
+                errors:
+                  - code: PSU_INSUFFICIENT
+                    field: psuId
+                    message: 'Требуется минимум 794 Вт, выбран БП на 750 Вт'
+                warnings:
+                  - code: PSU_LOW_HEADROOM
+                    field: psuId
+                    message: 'Запас мощности БП менее 15 %'
+                totalPrice: 3560
+        '400':
+          description: Отсутствуют обязательные идентификаторы компонентов
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error:
+                  code: MISSING_COMPONENTS
+                  message: 'Не переданы обязательные компоненты: cpuId, motherboardId'
+                  details:
+                    - { field: cpuId, issue: required }
+        '422':
+          description: Один или несколько компонентов не найдены в каталоге
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error:
+                  code: UNPROCESSABLE_COMPONENT
+                  message: 'Компонент с идентификатором 999 типа cpu не найден'
+                  details: [{ field: cpuId, issue: not_found }]
+
+  /configurator/psu/recommend:
+    post:
+      tags: [Конфигуратор]
+      summary: Подбор блока питания
+      security: []
+      operationId: recommendPsu
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [cpuId]
+              properties:
+                cpuId:
+                  type: integer
+                  description: Идентификатор процессора
+                gpuId:
+                  type: integer
+                  nullable: true
+                  description: Идентификатор видеокарты; если не задан, учитывается только TDP процессора
+                headroom:
+                  type: number
+                  format: float
+                  default: 1.25
+                  minimum: 1.0
+                  maximum: 2.0
+                  description: Коэффициент запаса мощности
+            example:
+              cpuId: 1
+              gpuId: 5
+              headroom: 1.25
+      responses:
+        '200':
+          description: Рекомендуемая мощность и подходящие модели БП
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PsuRecommendation' }
+              example:
+                cpuTdp: 105
+                gpuTdp: 245
+                recommendedWatts: 438
+                recommendedWattageClass: 550
+                alternatives:
+                  - id: 1
+                    componentType: psu
+                    название: 'be quiet! Pure Power 12 M 650W'
+                    цена: 219
+                    характеристики:
+                      мощность: 650
+                      '80plus': Gold
+        '400':
+          description: Не передан cpuId
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error: { code: VALIDATION_ERROR, message: 'Укажите cpuId' }
+
+  /support/troubleshooting/{symptomId}:
+    get:
+      tags: [Каталог]
+      summary: Диагностика неполадки
+      security: []
+      operationId: getTroubleshooting
+      parameters:
+        - name: symptomId
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [no_power, no_display, overheating, bsod, no_sound, slow_boot]
+      responses:
+        '200':
+          description: Диагностика и пошаговая инструкция
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TroubleshootingEntry' }
+        '404':
+          description: Неизвестный код симптома
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  # ------------------------- Корзина --------------------------------
+  /cart:
+    get:
+      tags: [Корзина]
+      summary: Корзина текущего покупателя
+      operationId: getCart
+      responses:
+        '200':
+          description: Содержимое корзины с пересчитанной стоимостью
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Cart' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /cart/items:
+    post:
+      tags: [Корзина]
+      summary: Добавление позиции в корзину
+      operationId: addCartItem
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CartItemInput' }
+            example:
+              componentType: gpu
+              componentId: 3
+              quantity: 1
+      responses:
+        '201':
+          description: Позиция добавлена, возвращается обновлённая корзина
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Cart' }
+        '400':
+          description: Некорректное тело запроса
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409':
+          description: Недостаточно товара на складе
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error:
+                  code: INSUFFICIENT_STOCK
+                  message: 'Доступно 1 шт., запрошено 5'
+                  details: [{ componentType: gpu, componentId: 3, available: 1 }]
+        '422':
+          description: Компонент не найден в каталоге
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /cart/items/{itemId}:
+    patch:
+      tags: [Корзина]
+      summary: Изменение количества позиции
+      operationId: updateCartItem
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema: { type: integer, minimum: 1 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quantity]
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 1
+                  maximum: 10
+            example:
+              quantity: 2
+      responses:
+        '200':
+          description: Позиция обновлена
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Cart' }
+        '400':
+          description: Количество вне диапазона 1…10
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error: { code: VALIDATION_ERROR, message: 'quantity должен быть от 1 до 10' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404':
+          description: Позиция не найдена
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422':
+          description: Недостаточно товара на складе
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+    delete:
+      tags: [Корзина]
+      summary: Удаление позиции из корзины
+      operationId: deleteCartItem
+      parameters:
+        - name: itemId
+          in: path
+          required: true
+          schema: { type: integer, minimum: 1 }
+      responses:
+        '204':
+          description: Позиция удалена, тело ответа отсутствует
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404':
+          description: Позиция не найдена
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /cart/merge:
+    post:
+      tags: [Корзина]
+      summary: Слияние локальной корзины (localStorage) с серверной
+      description: |
+        Используется после входа: позиции, накопленные в браузере
+        анонимного пользователя, переносятся в серверную корзину.
+        Если позиция уже присутствует, количества суммируются
+        (но не более остатка на складе).
+      operationId: mergeCart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [items]
+              properties:
+                items:
+                  type: array
+                  minItems: 1
+                  items: { $ref: '#/components/schemas/CartItemInput' }
+            example:
+              items:
+                - { componentType: gpu, componentId: 3, quantity: 1 }
+                - { componentType: ram, componentId: 4, quantity: 2 }
+      responses:
+        '200':
+          description: Корзина слита
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Cart' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409':
+          description: Часть позиций отсутствует на складе — они пропущены, ответ содержит отчёт
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Cart' }
+
+  # ------------------------- Заказы ---------------------------------
+  /orders:
+    post:
+      tags: [Заказы]
+      summary: Оформление заказа
+      description: |
+        Порядок обработки на сервере:
+        1) повторная проверка совместимости и наличия;
+        2) фиксация снимка названий и цен в `Заказ_Позиции`;
+        3) применение промокода;
+        4) резервирование остатков;
+        5) очистка корзины.
+      operationId: createOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreateOrderRequest' }
+            example:
+              delivery:
+                method: courier
+                address: 'ул. Ленина, 15, кв. 42, 220030 Минск'
+                phone: '+375291234567'
+              paymentMethod: card
+              promoCode: 'PCH5'
+              comment: 'Позвонить за час'
+      responses:
+        '201':
+          description: Заказ создан
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+        '400':
+          description: Некорректное тело запроса (например, не заполнен адрес доставки курьером)
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error:
+                  code: VALIDATION_ERROR
+                  message: 'При доставке курьером требуется адрес'
+                  details: [{ field: delivery.address, issue: required }]
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '409':
+          description: Корзина пуста либо недостаточно товара
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error: { code: INSUFFICIENT_STOCK, message: 'Видеокарта AMD RX 7700 XT недоступна в нужном количестве' }
+        '422':
+          description: Нарушена совместимость компонентов в заказе
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CompatibilityResult' }
+              example:
+                compatible: false
+                errors:
+                  - code: MEMORY_TYPE_MISMATCH
+                    field: ramId
+                    message: 'Плата поддерживает DDR5, выбрана память DDR4'
+                warnings: []
+
+    get:
+      tags: [Заказы]
+      summary: Список заказов текущего покупателя
+      operationId: listMyOrders
+      parameters:
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/OrderStatus' }
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Постраничная выборка заказов
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PagedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items: { $ref: '#/components/schemas/Order' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+  /orders/{orderId}:
+    get:
+      tags: [Заказы]
+      summary: Заказ по идентификатору
+      operationId: getOrder
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      responses:
+        '200':
+          description: Заказ с позициями
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: Заказ принадлежит другому пользователю
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error: { code: FORBIDDEN, message: 'Доступ к чужому заказу запрещён' }
+        '404':
+          description: Заказ не найден
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /orders/{orderId}/cancel:
+    post:
+      tags: [Заказы]
+      summary: Отмена заказа покупателем
+      description: |
+        Бизнес-правило: отмена разрешена **только** для статусов
+        «Новый» и «В обработке». Для статусов «Собран», «Отправлен»
+        и «Доставлен» возвращается `409 Conflict`.
+        Правило дополнительно закреплено триггером БД
+        `trg_order_cancel_guard`.
+      operationId: cancelOrder
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+                  minLength: 1
+                  maxLength: 500
+            example:
+              reason: 'Передумал, буду собирать позже'
+      responses:
+        '200':
+          description: Заказ отменён
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+        '400':
+          description: Не указана причина отмены
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: Заказ принадлежит другому пользователю
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '404':
+          description: Заказ не найден
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '409':
+          description: |
+            Отмена невозможна в текущем статусе заказа.
+            Это бизнес-правило, общее для REST-API, MCP-инструмента
+            `cancel_order` и триггера БД `trg_order_cancel_guard`.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error:
+                  code: ORDER_STATUS_CONFLICT
+                  message: 'Заказ PCH-2026-000042 в статусе «Отправлен» нельзя отменить'
+                  details: [{ currentStatus: Отправлен, allowedFrom: ['Новый', 'В обработке'] }]
+
+  /orders/{orderId}/tracking:
+    get:
+      tags: [Заказы]
+      summary: Отслеживание заказа
+      operationId: trackOrder
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      responses:
+        '200':
+          description: Трек-номер и прогноз доставки
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OrderTracking' }
+        '404':
+          description: Заказ не найден либо ещё не отправлен
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error: { code: TRACKING_UNAVAILABLE, message: 'Заказ ещё не передан в доставку' }
+
+  # ------------------------- Сборки ---------------------------------
+  /builds:
+    get:
+      tags: [Сборки]
+      summary: Сохранённые сборки покупателя
+      operationId: listBuilds
+      responses:
+        '200':
+          description: Список сохранённых сборок
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/SavedBuild' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+
+    post:
+      tags: [Сборки]
+      summary: Сохранение сборки
+      operationId: createBuild
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SaveBuildRequest' }
+            example:
+              название: 'Игровая на Ryzen 7'
+              заметка: 'Взять на распродаже в феврале'
+              components:
+                cpuId: 1
+                motherboardId: 2
+                ramId: 4
+                coolingId: 3
+                gpuId: 5
+                storageIds: [7]
+                psuId: 6
+                caseId: 8
+      responses:
+        '201':
+          description: Сборка сохранена
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SavedBuild' }
+        '400':
+          description: Некорректное тело запроса
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '422':
+          description: Сборка несовместима либо часть компонентов отсутствует
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CompatibilityResult' }
+
+  /builds/{buildId}:
+    get:
+      tags: [Сборки]
+      summary: Сохранённая сборка
+      operationId: getBuild
+      parameters:
+        - name: buildId
+          in: path
+          required: true
+          schema: { type: integer, minimum: 1 }
+      responses:
+        '200':
+          description: Сборка с составом и стоимостью
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SavedBuild' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403':
+          description: Сборка принадлежит другому пользователю
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+    put:
+      tags: [Сборки]
+      summary: Полная замена состава сборки
+      operationId: replaceBuild
+      parameters:
+        - name: buildId
+          in: path
+          required: true
+          schema: { type: integer, minimum: 1 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/SaveBuildRequest' }
+            example:
+              название: 'Игровая на Ryzen 7 (обновлена)'
+              components: { cpuId: 1, motherboardId: 2, ramId: 4, gpuId: 5, psuId: 6, caseId: 8 }
+      responses:
+        '200':
+          description: Сборка обновлена
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SavedBuild' }
+        '400':
+          description: Некорректное тело запроса
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404':
+          description: Сборка не найдена
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '422':
+          description: Новая сборка несовместима
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CompatibilityResult' }
+
+    delete:
+      tags: [Сборки]
+      summary: Удаление сборки
+      operationId: deleteBuild
+      parameters:
+        - name: buildId
+          in: path
+          required: true
+          schema: { type: integer, minimum: 1 }
+      responses:
+        '204':
+          description: Сборка удалена
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '404':
+          description: Сборка не найдена
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  # ------------------------- Отзывы ---------------------------------
+  # POST /catalog/components/{componentId}/reviews — см. выше
+
+  # ------------------------- Администрирование ----------------------
+  /admin/orders:
+    get:
+      tags: [Администрирование]
+      summary: Список заказов (менеджер)
+      operationId: adminListOrders
+      parameters:
+        - name: status
+          in: query
+          schema: { $ref: '#/components/schemas/OrderStatus' }
+        - name: from
+          in: query
+          description: Начало периода (ISO 8601)
+          schema: { type: string, format: date-time }
+        - name: to
+          in: query
+          description: Конец периода (ISO 8601)
+          schema: { type: string, format: date-time }
+        - $ref: '#/components/parameters/PageParam'
+        - $ref: '#/components/parameters/LimitParam'
+      responses:
+        '200':
+          description: Постраничная выборка заказов всех покупателей
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PagedResponse'
+                  - type: object
+                    properties:
+                      items:
+                        type: array
+                        items: { $ref: '#/components/schemas/Order' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /admin/orders/{orderId}/status:
+    patch:
+      tags: [Администрирование]
+      summary: Смена статуса заказа
+      description: |
+        Переход проверяется по справочной таблице `ПереходыСтатусовЗаказа`.
+        При переходе в статус «Отправлен» сервер автоматически генерирует
+        трек-номер и уведомляет покупателя.
+      operationId: adminUpdateOrderStatus
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:  { $ref: '#/components/schemas/OrderStatus' }
+                comment:
+                  type: string
+                  maxLength: 500
+            example:
+              status: Собран
+              comment: 'Собран и протестирован, готов к отправке'
+      responses:
+        '200':
+          description: Статус изменён
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+        '400':
+          description: Некорректное тело запроса
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404':
+          description: Заказ не найден
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '409':
+          description: Переход статуса недопустим
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error:
+                  code: INVALID_STATUS_TRANSITION
+                  message: 'Недопустимый переход «В обработке» → «Доставлен»'
+                  details: [{ from: В обработке, to: Доставлен, allowed: ['Собран'] }]
+
+  /admin/orders/{orderId}/comments:
+    post:
+      tags: [Администрирование]
+      summary: Комментарий менеджера к заказу
+      operationId: adminAddOrderComment
+      parameters:
+        - $ref: '#/components/parameters/OrderIdParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [text]
+              properties:
+                text: { type: string, minLength: 1, maxLength: 500 }
+            example:
+              text: 'Позвонили покупателю, договорились о доставке в четверг'
+      responses:
+        '201':
+          description: Комментарий добавлен
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Order' }
+        '400':
+          description: Пустой комментарий
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404':
+          description: Заказ не найден
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /admin/components:
+    post:
+      tags: [Администрирование]
+      summary: Добавление товара в каталог
+      operationId: adminCreateComponent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [componentType, payload]
+              properties:
+                componentType: { $ref: '#/components/schemas/ComponentType' }
+                payload:
+                  type: object
+                  description: Набор полей, соответствующий выбранному типу компонента
+                  additionalProperties: true
+            example:
+              componentType: ram
+              payload:
+                название: 'Kingston Fury Beast 16 ГБ DDR5-6000'
+                объем: 16
+                частота: 6000
+                тип: DDR5
+                профили_разгона: true
+                тайминги: CL36
+                цена: 289
+      responses:
+        '201':
+          description: Товар создан
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Component' }
+        '400':
+          description: Обязательные поля компонента не заполнены
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error:
+                  code: VALIDATION_ERROR
+                  message: 'Поле «объем» обязательно для типа ram'
+                  details: [{ field: объем, issue: required }]
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '409':
+          description: Товар с таким артикулом уже существует
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /admin/components/{componentId}:
+    patch:
+      tags: [Администрирование]
+      summary: Частичное обновление товара
+      operationId: adminUpdateComponent
+      parameters:
+        - $ref: '#/components/parameters/ComponentIdParam'
+        - $ref: '#/components/parameters/ComponentTypeParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                payload:
+                  type: object
+                  additionalProperties: true
+            example:
+              payload: { цена: 249, фото_url: 'https://pchelper.by/img/kingston-16.jpg' }
+      responses:
+        '200':
+          description: Товар обновлён
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Component' }
+        '400':
+          description: Некорректное тело запроса
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404':
+          description: Товар не найден
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+    delete:
+      tags: [Администрирование]
+      summary: Удаление товара из каталога
+      description: |
+        Удаление выполняется логически: если товар присутствует
+        в позициях заказов или сохранённых сборках, он помечается
+        как недоступный и не выдаётся в выдаче, но остаётся в истории.
+      operationId: adminDeleteComponent
+      parameters:
+        - $ref: '#/components/parameters/ComponentIdParam'
+        - $ref: '#/components/parameters/ComponentTypeParam'
+      responses:
+        '204':
+          description: Товар снят с продажи
+        '401': { $ref: '#/components/responses/Unauthorized' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404':
+          description: Товар не найден
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '409':
+          description: Товар участвует в активных заказах и не может быть удалён
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /admin/stock/{componentId}:
+    patch:
+      tags: [Администрирование]
+      summary: Изменение складского остатка
+      operationId: adminUpdateStock
+      parameters:
+        - $ref: '#/components/parameters/ComponentIdParam'
+        - $ref: '#/components/parameters/ComponentTypeParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                количество:
+                  type: integer
+                  minimum: 0
+                  description: Новое абсолютное значение остатка
+                delta:
+                  type: integer
+                  description: Изменение остатка (может быть отрицательным)
+                порог_малого:
+                  type: integer
+                  minimum: 0
+            example:
+              delta: 5
+      responses:
+        '200':
+          description: Остаток обновлён
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/StockLevel' }
+        '400':
+          description: Результат отрицательный либо заданы оба поля
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+              example:
+                error: { code: VALIDATION_ERROR, message: 'Передайте либо количество, либо delta — не оба сразу' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404':
+          description: Товар не найден
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '409':
+          description: Нельзя списать больше, чем доступно
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /admin/stock:
+    get:
+      tags: [Администрирование]
+      summary: Остатки на складе
+      operationId: adminListStock
+      parameters:
+        - name: componentType
+          in: query
+          schema: { $ref: '#/components/schemas/ComponentType' }
+        - name: onlyLow
+          in: query
+          description: Вернуть только позиции, заканчивающиеся
+          schema: { type: boolean, default: false }
+      responses:
+        '200':
+          description: Список остатков
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/StockLevel' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /admin/analytics/sales:
+    get:
+      tags: [Администрирование]
+      summary: Аналитика продаж
+      operationId: adminSalesAnalytics
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema: { type: string, format: date-time }
+        - name: to
+          in: query
+          required: true
+          schema: { type: string, format: date-time }
+        - name: groupBy
+          in: query
+          schema:
+            type: string
+            enum: [day, week, month, componentType]
+            default: day
+      responses:
+        '200':
+          description: Сводные данные по продажам
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SalesAnalytics' }
+        '400':
+          description: Период перевёрнут или слишком велик
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+# =====================================================================
+#  КОМПОНЕНТЫ
+# =====================================================================
+components:
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Access-токен, полученный в `/auth/login`
+
+  parameters:
+    PageParam:
+      name: page
+      in: query
+      description: Номер страницы (начиная с 1)
+      schema: { type: integer, minimum: 1, default: 1 }
+    LimitParam:
+      name: limit
+      in: query
+      description: Размер страницы
+      schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+    ComponentIdParam:
+      name: componentId
+      in: path
+      required: true
+      description: Идентификатор компонента
+      schema: { type: integer, minimum: 1 }
+    ComponentTypeParam:
+      name: componentType
+      in: query
+      required: true
+      description: |
+        Тип компонента. Обязателен, поскольку идентификаторы
+        в разных таблицах каталога независимы.
+      schema: { $ref: '#/components/schemas/ComponentType' }
+    OrderIdParam:
+      name: orderId
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1 }
+
+  responses:
+    Unauthorized:
+      description: |
+        `401 Unauthorized` — access-токен отсутствует, истёк или неверен.
+        Клиент должен выполнить `POST /auth/refresh` либо повторно войти.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example:
+            error: { code: UNAUTHORIZED, message: 'Токен доступа недействителен или истёк' }
+    Forbidden:
+      description: |
+        `403 Forbidden` — пользователь аутентифицирован, но не обладает
+        требуемой ролью (например, `customer` обращается к `/admin`).
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example:
+            error: { code: FORBIDDEN, message: 'Требуется роль manager' }
+    NotFound:
+      description: |
+        `404 Not Found` — запрошенный ресурс не найден.
+        Используется в операциях, где тело ответа не уточняется.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+          example:
+            error: { code: NOT_FOUND, message: 'Ресурс не найден' }
+    ServiceUnavailable:
+      description: |
+        `503 Service Unavailable` — сервис недоступен или БД не отвечает
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+  schemas:
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              description: Машиночитаемый код ошибки
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              description: Человекочитаемое описание на русском языке
+              example: 'Не переданы обязательные компоненты: cpuId'
+            details:
+              type: array
+              description: Детализация по каждому проблемному полю
+              items:
+                type: object
+                additionalProperties: true
+            traceId:
+              type: string
+              description: Идентификатор для поиска в логах сервиса
+
+    ComponentType:
+      type: string
+      description: Тип компонента каталога
+      enum: [cpu, motherboard, ram, cooling, gpu, storage, psu, case]
+
+    OrderStatus:
+      type: string
+      description: Статус заказа
+      enum: ['Новый', 'В обработке', 'Собран', 'Отправлен', 'Доставлен', 'Отменён']
+
+    PagedResponse:
+      type: object
+      required: [page, limit, total, totalPages, items]
+      properties:
+        page:       { type: integer, example: 1 }
+        limit:      { type: integer, example: 20 }
+        total:      { type: integer, example: 137 }
+        totalPages: { type: integer, example: 7 }
+
+    User:
+      type: object
+      required: [id, email, имя, роль]
+      properties:
+        id:        { type: integer, example: 17 }
+        email:     { type: string, format: email, example: anna@example.by }
+        имя:       { type: string, example: 'Анна Ковальчук' }
+        телефон:   { type: string, example: '+375291234567' }
+        роль:      { type: string, enum: [customer, manager] }
+        создан_в:  { type: string, format: date-time }
+
+    RegisterRequest:
+      type: object
+      required: [email, password, имя]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: Не менее 8 символов, содержит цифру и спецсимвол
+        имя:
+          type: string
+          minLength: 2
+          maxLength: 100
+        телефон:
+          type: string
+          maxLength: 30
+
+    AuthResponse:
+      type: object
+      required: [accessToken, refreshToken, tokenType, expiresIn, user]
+      properties:
+        accessToken:
+          type: string
+          description: JWT, время жизни 1800 секунд
+        refreshToken:
+          type: string
+          description: Opaque-токен, время жизни 30 дней, хранится в БД в виде хеша
+        tokenType: { type: string, example: Bearer }
+        expiresIn: { type: integer, example: 1800 }
+        user:     { $ref: '#/components/schemas/User' }
+
+    Component:
+      type: object
+      required: [id, componentType, название, цена]
+      properties:
+        id:            { type: integer, example: 3 }
+        componentType: { $ref: '#/components/schemas/ComponentType' }
+        название:      { type: string, example: 'AMD Radeon RX 7700 XT' }
+        производитель: { type: string, nullable: true, example: AMD }
+        цена:          { type: integer, description: 'Цена в BYN', example: 1299 }
+        фото_url:      { type: string, format: uri, nullable: true }
+        tdp:
+          type: integer
+          nullable: true
+          description: Для видеокарт и блоков питания — потребляемая мощность
+          example: 245
+        рейтинг:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 5
+          nullable: true
+          example: 4.7
+        количествоОтзывов:
+          type: integer
+          example: 18
+        наличие:
+          type: integer
+          description: Доступно к продаже (количество минус резерв)
+          example: 4
+        характеристики:
+          type: object
+          description: |
+            Специфичные для данного типа поля. Три источника JSONB
+            (`ядра_потоки`, `частота`, `скорость_чтения_записи`)
+            разворачиваются в плоские ключи.
+          additionalProperties: true
+          example:
+            объем_памяти: 12
+            длина: 267
+            количество_вентиляторов: 2
+
+    Prebuilt:
+      type: object
+      required: [id, название, цена, состав]
+      properties:
+        id:      { type: integer, example: 2 }
+        название: { type: string, example: 'Офисный ПК1' }
+        задачи: { type: string, example: 'Офис, учёба, веб-сёрфинг' }
+        цена:
+          type: integer
+          description: Вычисляется как сумма цен компонентов (не хранится)
+          example: 2154
+        фото_url: { type: string, format: uri, nullable: true }
+        состав:
+          type: object
+          description: Расшифрованный состав конфигурации
+          additionalProperties: true
+          example:
+            процессор:         { id: 4, название: 'Intel Core i5-12400F', цена: 389 }
+            материнская_плата: { id: 6, название: 'MSI PRO B550M-P', цена: 329 }
+            видеокарта:        null
+            накопители:
+              - { id: 9, название: 'Kingston NV2 1 ТБ', цена: 145 }
+
+    ConfiguratorStep:
+      type: object
+      required: [number, componentType, title, required]
+      properties:
+        number:        { type: integer, minimum: 1, maximum: 8 }
+        componentType: { $ref: '#/components/schemas/ComponentType' }
+        title:         { type: string, example: 'Материнская плата' }
+        required:      { type: boolean, example: true }
+        multiple:      { type: boolean, example: false, description: 'Шаг допускает несколько накопителей' }
+        filterBy:
+          type: array
+          description: Поля, по которым выполняется фильтрация на шаге
+          items: { type: string }
+          example: [socket]
+
+    BuildInput:
+      type: object
+      required: [cpuId, motherboardId, ramId]
+      description: Частичная конфигурация, передаваемая идентификаторами
+      properties:
+        cpuId:            { type: integer, example: 1 }
+        motherboardId:    { type: integer, example: 2 }
+        ramId:            { type: integer, example: 4 }
+        coolingId:        { type: integer, example: 3 }
+        gpuId:
+          type: integer
+          nullable: true
+          description: Необязателен для сборок на встроенной графике
+          example: 5
+        storageIds:
+          type: array
+          items: { type: integer }
+          default: []
+          example: [7]
+        psuId: { type: integer, example: 6 }
+        caseId: { type: integer, example: 8 }
+
+    CompatibilityIssue:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          enum:
+            - SOCKET_MISMATCH
+            - MEMORY_TYPE_MISMATCH
+            - FORM_FACTOR_MISMATCH
+            - GPU_TOO_LONG
+            - COOLER_TDP_TOO_LOW
+            - COOLER_TOO_TALL
+            - RADIATOR_TOO_LONG
+            - PSU_INSUFFICIENT
+            - PSU_LOW_HEADROOM
+            - SSD_COUNT
+            - HDD_COUNT
+        field:
+          type: string
+          description: Идентификатор поля, за которое отвечает проблема
+          example: psuId
+        message: { type: string }
+
+    CompatibilityResult:
+      type: object
+      required: [compatible, errors, warnings]
+      properties:
+        compatible:
+          type: boolean
+          description: true, если блокирующих ошибок нет
+        errors:
+          type: array
+          description: Блокирующие проблемы — оформить заказ нельзя
+          items: { $ref: '#/components/schemas/CompatibilityIssue' }
+        warnings:
+          type: array
+          description: Предупреждения — заказ оформить можно
+          items: { $ref: '#/components/schemas/CompatibilityIssue' }
+        totalPrice:
+          type: integer
+          description: Суммарная стоимость конфигурации в BYN
+          example: 3560
+
+    PsuRecommendation:
+      type: object
+      required: [cpuTdp, gpuTdp, recommendedWatts, alternatives]
+      properties:
+        cpuTdp:  { type: integer, example: 105 }
+        gpuTdp:  { type: integer, example: 245 }
+        recommendedWatts:
+          type: integer
+          description: ceil((cpuTdp + gpuTdp) × headroom)
+          example: 438
+        recommendedWattageClass:
+          type: integer
+          description: Ближайший стандартный класс мощности
+          enum: [350, 450, 550, 650, 750, 850, 1000, 1200]
+          example: 550
+        alternatives:
+          type: array
+          items: { $ref: '#/components/schemas/Component' }
+
+    TroubleshootingEntry:
+      type: object
+      required: [id, title, steps]
+      properties:
+        id:    { type: string, example: no_display }
+        title: { type: string, example: 'Компьютер включается, но нет изображения' }
+        steps:
+          type: array
+          items: { type: string }
+          example:
+            - 'Проверить, включён ли блок питания'
+            - 'Переподключить кабель видеокарты (HDMI/DP)'
+            - 'Сбросить CMOS, вынув батарейку CR2030 на 5 минут'
+
+    CartItemInput:
+      type: object
+      required: [componentType, componentId]
+      properties:
+        componentType: { $ref: '#/components/schemas/ComponentType' }
+        componentId:   { type: integer, minimum: 1 }
+        quantity:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 1
+
+    CartItem:
+      allOf:
+        - $ref: '#/components/schemas/CartItemInput'
+        - type: object
+          required: [id, название, цена, сумма, наличие]
+          properties:
+            id:       { type: integer, example: 91 }
+            название: { type: string }
+            цена:     { type: integer, example: 1299 }
+            сумма:    { type: integer, example: 1299 }
+            наличие:  { type: integer, example: 4 }
+
+    Cart:
+      type: object
+      required: [items, totalQuantity, totalPrice]
+      properties:
+        id:  { type: integer, nullable: true, example: 12 }
+        items:
+          type: array
+          items: { $ref: '#/components/schemas/CartItem' }
+        totalQuantity: { type: integer, example: 3 }
+        totalPrice:    { type: integer, example: 1887 }
+
+    CreateOrderRequest:
+      type: object
+      required: [delivery, paymentMethod]
+      properties:
+        delivery:
+          type: object
+          required: [method, phone]
+          properties:
+            method:
+              type: string
+              enum: [courier, pickup, mail]
+            address:
+              type: string
+              description: Обязателен для courier и mail
+              example: 'ул. Ленина, 15, кв. 42, 220030 Минск'
+            phone:
+              type: string
+              example: '+375291234567'
+        paymentMethod:
+          type: string
+          enum: [card, cash, installment, credit]
+        promoCode:
+          type: string
+          maxLength: 30
+          example: PCH5
+        comment:
+          type: string
+          maxLength: 500
+
+    OrderItem:
+      type: object
+      required: [componentType, идентификатор, название, количество, цена, сумма]
+      properties:
+        componentType:  { $ref: '#/components/schemas/ComponentType' }
+        идентификатор:  { type: integer, example: 3 }
+        название:
+          type: string
+          description: Снимок названия на момент оформления заказа
+        количество:      { type: integer, example: 1 }
+        цена:
+          type: integer
+          description: Снимок цены на момент оформления заказа
+        сумма:           { type: integer, example: 1299 }
+
+    Order:
+      type: object
+      required: [id, номер, статус, итоговая_сумма, позиции, создан_в]
+      properties:
+        id:       { type: integer, example: 1042 }
+        номер:    { type: string, example: 'PCH-2026-000042' }
+        пользователь_id: { type: integer, example: 17 }
+        статус:
+          allOf: [$ref: '#/components/schemas/OrderStatus']
+          example: В обработке
+        способ_доставки: { type: string, enum: [courier, pickup, mail] }
+        адрес_доставки:  { type: string, nullable: true }
+        телефон:         { type: string, example: '+375291234567' }
+        способ_оплаты:   { type: string, enum: [card, cash, installment, credit] }
+        скидка:          { type: integer, example: 100 }
+        итоговая_сумма:  { type: integer, example: 3780 }
+        трек_номер:
+          type: string
+          nullable: true
+          example: BY-7744123
+        комментарий_менеджера: { type: string, nullable: true }
+        позиции:
+          type: array
+          items: { $ref: '#/components/schemas/OrderItem' }
+        создан_в:   { type: string, format: date-time }
+        обновлён_в: { type: string, format: date-time }
+
+    OrderTracking:
+      type: object
+      required: [orderId, trackingNumber, status]
+      properties:
+        orderId:        { type: integer, example: 1042 }
+        trackingNumber: { type: string, example: 'BY-7744123' }
+        carrier:        { type: string, example: 'Белпочта' }
+        status:         { $ref: '#/components/schemas/OrderStatus' }
+        eta:
+          type: string
+          format: date
+          nullable: true
+          example: '2026-10-16'
+
+    SaveBuildRequest:
+      type: object
+      required: [название, components]
+      properties:
+        название:
+          type: string
+          minLength: 1
+          maxLength: 150
+        заметка:
+          type: string
+          maxLength: 1000
+        components:
+          $ref: '#/components/schemas/BuildInput'
+
+    SavedBuild:
+      type: object
+      required: [id, название, общая_стоимость, components, создан_в]
+      properties:
+        id:              { type: integer, example: 8 }
+        название:        { type: string, example: 'Игровая на Ryzen 7' }
+        заметка:         { type: string, nullable: true }
+        общая_стоимость: { type: integer, example: 3780 }
+        components:
+          $ref: '#/components/schemas/BuildInput'
+        совместима:
+          type: boolean
+          description: Актуальность совместимости на момент запроса
+          example: true
+        создан_в:   { type: string, format: date-time }
+        обновлён_в: { type: string, format: date-time }
+
+    Review:
+      type: object
+      required: [id, оценка, статус_модерации, создан_в]
+      properties:
+        id:        { type: integer, example: 31 }
+        пользователь_id: { type: integer, example: 17 }
+        автор:     { type: string, example: 'Анна К.' }
+        оценка:    { type: integer, minimum: 1, maximum: 5, example: 5 }
+        текст:     { type: string, nullable: true }
+        статус_модерации:
+          type: string
+          enum: ['на модерации', 'опубликован', 'отклонён']
+        создан_в:  { type: string, format: date-time }
+
+    StockLevel:
+      type: object
+      required: [componentType, componentId, количество, доступно]
+      properties:
+        componentType:  { $ref: '#/components/schemas/ComponentType' }
+        componentId:    { type: integer, example: 3 }
+        название:       { type: string }
+        количество:      { type: integer, example: 5 }
+        зарезервировано: { type: integer, example: 1 }
+        доступно:        { type: integer, example: 4 }
+        порог_малого:    { type: integer, example: 3 }
+        заканчивается:   { type: boolean, example: false }
+        обновлено:       { type: string, format: date-time }
+
+    FilterDictionary:
+      type: object
+      description: Значения, доступные для фильтрации каталога
+      properties:
+        sockets:      { type: array, items: { type: string } }
+        memoryTypes:  { type: array, items: { type: string } }
+        formFactors:  { type: array, items: { type: string } }
+        brands:       { type: array, items: { type: string } }
+        priceRange:
+          type: object
+          properties:
+            min: { type: integer }
+            max: { type: integer }
+
+    SalesAnalytics:
+      type: object
+      required: [from, to, totalRevenue, ordersCount, series, byComponentType]
+      properties:
+        from:         { type: string, format: date-time }
+        to:           { type: string, format: date-time }
+        totalRevenue: { type: integer, description: 'BYN', example: 48210 }
+        ordersCount:  { type: integer, example: 34 }
+        averageOrder: { type: integer, example: 1418 }
+        series:
+          type: array
+          description: Динамика выручки по выбранному разрезу
+          items:
+            type: object
+            properties:
+              bucket:   { type: string, example: '2026-10-01' }
+              revenue:  { type: integer, example: 3120 }
+              orders:   { type: integer, example: 3 }
+        byComponentType:
+          type: array
+          description: Структура продаж по типам комплектующих
+          items:
+            type: object
+            properties:
+              componentType: { $ref: '#/components/schemas/ComponentType' }
+              quantity:      { type: integer, example: 41 }
+              revenue:       { type: integer, example: 19890 }
