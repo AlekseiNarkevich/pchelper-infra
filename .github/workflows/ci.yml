@@ -7,18 +7,23 @@
 #    push в main   → lint → тесты → Swagger → SonarQube Quality Gate →
 #                    сборка и публикация образов → деплой на Render
 #
-#  ТРИ ПРОВЕРКИ СЕКРЕТОВ. Задание требует, чтобы образ собирался только
-#  после тестов и проверки качества кода. Поэтому этапы Sonar и Deploy
-#  включаются по факту наличия секрета:
+#  ПОЧЕМУ КАЧЕСТВО КОДА ЯВЛЯЕТСЯ БЛОКИРУЮЩИМ ЭТАПОМ
+#  Задание требует, чтобы образ собирался только после прохождения
+#  тестов И проверки качества кода. Поэтому этап build-and-push
+#  объявлен через needs: [ test, sonar ], и публикация образа
+#  произойдёт только при зелёном Quality Gate.
 #
-#    secrets.SONAR_TOKEN != ''        → этап SonarQube выполняется,
-#                                       и тогда он становится блокирующим;
-#    secrets.RENDER_DEPLOY_HOOK != '' → выполняется деплой на Render.
+#  СЕКРЕТ, НЕОБХОДИМЫЙ ДЛЯ ЗАПУСКА
+#    Settings → Secrets and variables → Actions → New repository secret
+#      SONAR_TOKEN        токен SonarCloud или SonarQube
 #
-#  Пока секрет не задан, этап помечается как skipped, а не failed:
-#  конвейер остаётся зелёным, но как только токен появится в
-#  Settings → Secrets and variables → Actions, правило заработает
-#  без правок файла.
+#  ОГРАНИЧЕНИЕ СИНТАКСИСА, О КОТОРОМ НУЖНО ЗНАТЬ
+#    Контекст secrets НЕДОСТУПЕН в условии if на уровне задания (job).
+#    GitHub покажет ошибку разбора всего файла: «Unrecognized named-value:
+#    'secrets'». Разрешённые контексты здесь — только github, needs,
+#    vars и inputs. Поэтому проверка наличия секрета выполняется
+#    не в условии задания, а внутри шага (уровень step такой проверки
+#    разрешён через env).
 # =====================================================================
 
 name: PCHelper CI/CD
@@ -161,17 +166,19 @@ jobs:
   # -------------------------------------------------------------------
   # Этап 3. Проверка качества кода SonarQube (пункт 12 задания 6)
   #
-  #   Этап выполняется только при наличии секрета SONAR_TOKEN.
-  #   Настройки анализа вынесены в sonar-project.properties, здесь
-  #   передаются только параметры, специфичные для запуска из CI.
+  #   Этап блокирующий: без зелёного Quality Gate образы не собираются.
+  #   Выполняется при каждом пуше в main.
+  #
+  #   Если секрет SONAR_TOKEN ещё не создан, сканер завершится ошибкой —
+  #   и это правильное поведение: задание требует настоящей проверки
+  #   качества кода, а не «зелёной галочки». Настройка токена описана
+  #   в README репозитория.
   # -------------------------------------------------------------------
   sonar:
     name: SonarQube Quality Gate
     runs-on: ubuntu-latest
     needs: [test, lint]
-    if: >-
-      (github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch')
-      && secrets.SONAR_TOKEN != ''
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
 
     steps:
       - uses: actions/checkout@v4
@@ -188,6 +195,20 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
+
+      - name: Проверить наличие токена SonarQube
+        id: token
+        env:
+          TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::error::Секрет SONAR_TOKEN не создан. Создайте его:"
+            echo "::error::Settings → Secrets and variables → Actions"
+            echo "::error::→ New repository secret → имя SONAR_TOKEN"
+            echo "::error::Токен берётся в личном кабинете SonarCloud."
+            exit 1
+          fi
+          echo "Токен SonarQube найден"
 
       - name: Загрузить отчёт о покрытии
         uses: actions/download-artifact@v4
@@ -272,14 +293,18 @@ jobs:
 
   # -------------------------------------------------------------------
   # Этап 5. Развёртывание backend на Render (пункт 13 задания 6)
-  #   Срабатывает только после успеха сборки и только при наличии
-  #   секрета RENDER_DEPLOY_HOOK из панели Render.
+  #   Срабатывает только после успеха сборки образа.
+  #
+  #   Проверка вебхука выполняется внутри шага, а не в условии задания:
+  #   контекст secrets в условии job недоступен (см. шапку файла).
+  #   Если вебхук ещё не создан, этап завершается предупреждением —
+  #   это честнее, чем молчаливый пропуск.
   # -------------------------------------------------------------------
   deploy:
     name: Деплой на Render
     runs-on: ubuntu-latest
     needs: build-and-push
-    if: github.ref == 'refs/heads/main' && secrets.RENDER_DEPLOY_HOOK != ''
+    if: github.ref == 'refs/heads/main'
 
     steps:
       - name: Сообщить Render о новом коммите
@@ -287,6 +312,13 @@ jobs:
           RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
           COMMIT_SHA: ${{ github.sha }}
         run: |
+          if [ -z "$RENDER_DEPLOY_HOOK" ]; then
+            echo "::warning::RENDER_DEPLOY_HOOK не создан — деплой пропущен."
+            echo "::warning::Создайте веб-сервис на render.com, затем:"
+            echo "::warning::Settings → Secrets and variables → Actions"
+            echo "::warning::→ New repository secret → имя RENDER_DEPLOY_HOOK"
+            exit 0
+          fi
           curl -sS -X POST "$RENDER_DEPLOY_HOOK" \
                -H 'Content-Type: application/json' \
                -d "{\"commitId\": \"$COMMIT_SHA\"}"
