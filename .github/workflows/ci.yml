@@ -219,6 +219,11 @@ jobs:
       - name: SonarScanner — анализ и ожидание Quality Gate
         uses: SonarSource/sonarqube-scan-action@v5
         env:
+          # ОБЯЗАТЕЛЬНО для SonarCloud. Без этой переменной сканер
+          # обращается к http://localhost:9000, где ничего не запущено,
+          # и завершается ошибкой подключения. Для самостоятельно
+          # развёрнутого SonarQube указывается адрес своего сервера.
+          SONAR_HOST_URL: https://sonarcloud.io
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
