@@ -42,10 +42,14 @@ ENV PCHELPER_DB=/data/pchelper_mcp.db
 # Устанавливаются от root: non-root пользователь ещё не может
 # писать в системные каталоги. Сами файлы и база не содержат
 # пользовательских данных.
-# --only-binary :all: запрещает выполнение setup-скриптов из
-# пакетов во время установки (SonarCloud S8541).
-COPY requirements.txt ./
-RUN pip install --no-cache-dir --only-binary :all: -r requirements.txt
+# --require-hashes + файл requirements.lock: pip сверяет хеш каждого
+# пакета и откажется ставить тот, чей хеш не совпал. Без этого
+# подменённый на сервере пакет установился бы молча (SonarCloud S8544).
+# --only-binary :all: запрещает выполнение setup-скриптов из пакетов
+# во время установки (SonarCloud S8541).
+COPY requirements.lock ./
+RUN pip install --no-cache-dir --only-binary :all: \
+    --require-hashes -r requirements.lock
 
 # --- Код сервера ----------------------------------------------------
 # Файлы копируются от root и остаются доступными пользователю mcp
