@@ -71,7 +71,7 @@ AI-ассистенту взаимодействовать с базой дан�
 
 **Файл:** [`08-mcp-architecture.puml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/08-mcp-architecture.puml)
 
-
+![Рис. 8. Архитектура MCP-сервера PCHelper](https://alekseinarkevich.github.io/pchelper-infra/img/08-mcp-architecture.png)
 
 #### Решение: два транспорта
 
@@ -101,7 +101,7 @@ db.py        ← доступ к данным
 
 **Файл:** [`14-mcp-schema.puml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/14-mcp-schema.puml)
 
-
+![Рис. 9. JSON-схемы примитивов MCP-сервера PCHelper](https://alekseinarkevich.github.io/pchelper-infra/img/14-mcp-schema.png)
 
 #### Принципы типизации аргументов
 

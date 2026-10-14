@@ -32,7 +32,7 @@
 
 **Файл:** [`05-routes-endpoints.puml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/05-routes-endpoints.puml)
 
-
+![Рис. 5. Проектирование маршрутов и конечных точек API](https://alekseinarkevich.github.io/pchelper-infra/img/05-routes-endpoints.png)
 
 #### Сводная таблица маршрутов
 
@@ -82,7 +82,7 @@
 
 **Файл:** [`06-usecase-endpoint-mapping.puml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/06-usecase-endpoint-mapping.puml)
 
-
+![Рис. 6. Сопоставление вариантов использования и конечных точек API](https://alekseinarkevich.github.io/pchelper-infra/img/06-usecase-endpoint-mapping.png)
 
 #### Таблица соответствия UC ↔ HTTP-метод ↔ маршрут ↔ коды ответа
 

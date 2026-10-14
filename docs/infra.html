@@ -16,6 +16,7 @@
 <figure><img src="img/10-docker-infrastructure.png" alt="Инфраструктура на Docker и Docker Compose" loading="lazy"><figcaption>Инфраструктура на Docker и Docker Compose</figcaption></figure><figure><img src="img/11-cicd-pipeline.png" alt="Конвейер GitHub Actions с этапом SonarQube" loading="lazy"><figcaption>Конвейер GitHub Actions с этапом SonarQube</figcaption></figure><figure><img src="img/12-repo-branches.png" alt="Репозитории и модель веток" loading="lazy"><figcaption>Репозитории и модель веток</figcaption></figure>
 <h3>Структура репозиториев и модель веток</h3>
 <p><strong>Файл:</strong> <a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/12-repo-branches.puml"><code>diagrams/plantuml/12-repo-branches.puml</code></a></p>
+<p><img src="https://alekseinarkevich.github.io/pchelper-infra/img/12-repo-branches.png" alt="Рис. 11. Репозитории PCHelper и модель веток"></p>
 <h5>Репозитории</h5>
 <p><strong>Фактически создан один репозиторий</strong> — инфраструктурный стенд задания 6:</p>
 <div class='table-wrap'><table><thead><tr><th>Репозиторий</th><th>Назначение</th><th>Состояние</th></tr></thead><tbody><tr><td><a href="https://github.com/AlekseiNarkevich/pchelper-infra"><code>AlekseiNarkevich/pchelper-infra</code></a></td><td>Документация лабораторной работы, вики, GitHub Pages, Docker-окружение, CI/CD, SonarQube, развёртывание</td><td><strong>рабочий</strong>: конвейер зелёный, сервис доступен на <code>pchelper-infra.onrender.com</code></td></tr></tbody></table></div>
@@ -56,6 +57,7 @@
 <p><em>после</em> первого прогона workflow: GitHub показывает в списке только те проверки, которые уже отработали хотя бы раз. Добавить: <code>lint</code>, <code>unit-and-integration</code>, <code>openapi-spec</code>, <code>sonar-quality-gate</code>, <code>build-and-push</code>.</p>
 <h3>Docker-инфраструктура</h3>
 <p><strong>Файл:</strong> <a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/10-docker-infrastructure.puml"><code>diagrams/plantuml/10-docker-infrastructure.puml</code></a></p>
+<p><img src="https://alekseinarkevich.github.io/pchelper-infra/img/10-docker-infrastructure.png" alt="Рис. 13. Инфраструктура PCHelper на Docker и Docker Compose"></p>
 <p>Это <strong>уточнение</strong> диаграммы развёртывания из лабораторной работы 3 (<code>20-deployment.puml</code>): в ней появились контейнеры, порты, healthcheck, тома и профиль тестового окружения.</p>
 <h5>Состав окружения</h5>
 <div class='table-wrap'><table><thead><tr><th>Контейнер</th><th>Образ</th><th>Порт</th><th>Healthcheck</th><th>Volume</th></tr></thead><tbody><tr><td><code>pchelper-web</code></td><td>сборка React → <code>nginx:1.27-alpine</code></td><td>8080:80</td><td><code>wget http://127.0.0.1/</code></td><td>—</td></tr><tr><td><code>pchelper-api</code></td><td><code>node:20-alpine</code>, многостадийная сборка</td><td>3001:3001</td><td><code>wget …/api/v1/health</code></td><td>—</td></tr><tr><td><code>pchelper-mcp</code></td><td><code>python:3.12-slim</code> (профиль <code>mcp</code>)</td><td>8081:8080</td><td>HTTP-проверка <code>/mcp</code></td><td><code>mcpdata</code></td></tr><tr><td><code>pchelper-postgres</code></td><td><code>postgres:15-alpine</code></td><td>5432:5432</td><td><code>pg_isready</code></td><td><code>pgdata</code></td></tr><tr><td><code>pchelper-redis</code></td><td><code>redis:7-alpine</code></td><td>6379:6379</td><td><code>redis-cli ping</code></td><td><code>redisdata</code></td></tr><tr><td><code>pchelper-tests</code></td><td>backend target <code>dev</code> (профиль <code>test</code>)</td><td>—</td><td>—</td><td>—</td></tr></tbody></table></div>
@@ -154,6 +156,7 @@ build-and-push:
 <p>Покрытие кода считается инструментом <strong>c8</strong> (<code>npm run test:coverage</code>) в формате LCOV, выгружается артефактом <code>coverage</code> и передаётся в SonarQube через <code>sonar.javascript.lcov.reportPaths</code>, поэтому снижение покрытия видно в отчёте о качестве. Фактическое покрытие backend — <strong>95,47 % инструкций</strong>, 100 % функций. Сам каталог <code>coverage/</code> исключён из репозитория через <code>.gitignore</code>.</p>
 <h3>CI/CD-конвейер</h3>
 <p><strong>Файл:</strong> <a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/11-cicd-pipeline.puml"><code>diagrams/plantuml/11-cicd-pipeline.puml</code></a></p>
+<p><img src="https://alekseinarkevich.github.io/pchelper-infra/img/11-cicd-pipeline.png" alt="Рис. 14. CI/CD-конвейер PCHelper (GitHub Actions + SonarQube + Docker + Render)"></p>
 <h5>Этапы конвейера</h5>
 <pre><code>pull request → develop
   ├─ 0. lint              ESLint + Prettier --check
