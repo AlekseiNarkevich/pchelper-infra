@@ -11,7 +11,7 @@
   <h1>Инфраструктура и CI/CD</h1>
   <p>Задание 6 — контейнеризация, непрерывная интеграция, проверка качества и развёртывание</p>
 </div></header>
-<nav><div class="wrap"><a href="index.html">Главная</a><a href="requirements.html">Функциональные требования</a><a href="files.html">Файлы приложения</a><a href="db.html">Схема базы данных</a><a href="api.html">API-проекта</a><a href="mcp.html">MCP-сервер</a><a href="spec.html">Доп. спецификация</a><a href="infra.html" class="on">Инфраструктура и CI/CD</a><a href="labs.html">Лабораторные работы</a><a href="presentation.html">Презентация</a></div></nav>
+<nav><div class="wrap"><a href="index.html">Главная</a><a href="requirements.html">Функциональные требования</a><a href="files.html">Файлы приложения</a><a href="db.html">Схема базы данных</a><a href="api.html">API-проекта</a><a href="api-reference.html">Интерактивная документация</a><a href="mcp.html">MCP-сервер</a><a href="spec.html">Доп. спецификация</a><a href="infra.html" class="on">Инфраструктура и CI/CD</a><a href="labs.html">Лабораторные работы</a><a href="presentation.html">Презентация</a></div></nav>
 <main class="wrap">
 <figure><img src="img/10-docker-infrastructure.png" alt="Инфраструктура на Docker и Docker Compose" loading="lazy"><figcaption>Инфраструктура на Docker и Docker Compose</figcaption></figure><figure><img src="img/11-cicd-pipeline.png" alt="Конвейер GitHub Actions с этапом SonarQube" loading="lazy"><figcaption>Конвейер GitHub Actions с этапом SonarQube</figcaption></figure><figure><img src="img/12-repo-branches.png" alt="Репозитории и модель веток" loading="lazy"><figcaption>Репозитории и модель веток</figcaption></figure>
 <h3>Структура репозиториев и модель веток</h3>
@@ -296,7 +296,7 @@ sonar.qualitygate.timeout=300</code></pre>
     "database": "GET /api/v1/hello/db",
     "adminOrders": "GET /api/v1/admin/orders (нужен токен)"
   },
-  "note": "Спецификация REST API — 39 операций, файл api/openapi.yaml"
+  "note": "Спецификация REST API — 41 операция, файл api/openapi.yaml"
 }</code></pre>
 <h5>Как деплой связан с конвейером</h5>
 <p>Полная цепочка проверена на коммите <code>5f38c26</code>:</p>
