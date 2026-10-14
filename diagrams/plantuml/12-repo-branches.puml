@@ -1,0 +1,129 @@
+@startuml 12-repo-branches
+
+' ============================================================================
+'  РЕПОЗИТОРИИ PCHelper И МОДЕЛЬ ВЕТОК
+'  Лабораторная работа № 4, задание 6, пункты 2, 3, 5.
+'
+'  Требования методички:
+'    * п. 2 — создать структуру проекта в репозиториях для бекенда,
+'             веб- и мобильной версий; создать ветки production
+'             и development; разработку вести только через git;
+'    * п. 3 — управление проектом через GitHub Project.
+'
+'  ЧТО ПОКАЗАНО НА ЭТОЙ ДИАГРАММЕ:
+'    * четыре репозитория команды в организации fpmi-hci-2026 —
+'      документация, серверное приложение и API, веб-клиент,
+'      мобильный клиент;
+'    * отдельный личный репозиторий инфраструктуры, в котором
+'      выполняется конвейер задания 6 (CI/CD, SonarQube, Render);
+'    * модель веток feature/* -> develop -> main (с тегом релиза).
+'
+'  Почему инфраструктура вынесена в отдельный репозиторий:
+'    стенд задания 6 — это Hello World API, nginx-страница и
+'    MCP-сервер из задания 5. Они поднимаются одной командой
+'    docker compose up -d --build и не содержат кода магазина.
+'    Размещать их в репозиториях будущего интернет-магазина
+'    преждевременно: когда стенд перейдёт в код курсовой,
+'    конвейер переедет в hci-11-backend-api-group-1.
+'
+'  Имена репозиториев приведены в точности как созданы на GitHub.
+' ============================================================================
+title Репозитории PCHelper и модель веток
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #fafafa
+  BorderColor #bdbdbd
+  FontColor #0d47a1
+  FontStyle bold
+}
+skinparam ArrowColor #1976d2
+skinparam ArrowFontColor #0d47a1
+
+' --- Четыре репозитория команды: организация fpmi-hci-2026 ---
+' Каждый модуль системы живёт в своём репозитории. Так проще ревью
+' и можно выдать доступы разным участникам команды.
+package "Организация fpmi-hci-2026" #ffffff {
+  folder "hci-11-project-group-1\nДокументация\nREADME · вики · отчёты ЛР\n/ db · / api · GitHub Pages" as docrepo
+  folder "hci-11-backend-api-group-1\nСерверное приложение и API\nNode.js 20 + Express\nroutes → controllers →\nservices → repositories" as apirepo
+  folder "hci-11-frontend-group-1\nВеб-клиент\nReact 18 + Vite" as webrepo
+  folder "hci-11-mobile-group-1\nМобильный клиент\nНативный Android\n(Kotlin, Android Studio)" as mobrepo
+}
+
+' --- Личный репозиторий инфраструктуры ---
+' Конвейер задания 6 выполняется здесь. Состав каталогов
+' соответствует содержимому папки ЛР4/infra/.
+package "Личный репозиторий\nAlekseiNarkevich/pchelper-infra" #fffde7 {
+  folder "/.github/workflows\nci.yml — 6 этапов" as ciwf
+  folder "/docker-compose.yml\npostgres · redis · api · web · mcp" as compose
+  folder "/backend\nHello World API\n13 тестов node:test" as infbackend
+  folder "/frontend\nnginx + страница\nпроверки окружения" as inffrontend
+  folder "/mcp\nMCP-сервер задания 5\n13 Tools · 39 тестов" as infmcp
+  folder "/sonar-project.properties" as sonar
+}
+
+' --- Модель веток ---
+' Разрешённые переходы показаны стрелками: feature/* сливается
+' в develop, develop — в main при релизе.
+rectangle "Модель веток" #fafafa {
+  [main\nproduction\nзащищённая] as bmain
+  [develop\ndevelopment\nинтеграция] as bdev
+  [feature/lab4-api\nзадание 1–4:\nтребования, БД, API] as bf1
+  [feature/lab4-mcp\nзадание 5:\nMCP-сервер] as bf2
+  [feature/lab4-infra\nзадание 6:\nDocker, CI, Sonar] as bf3
+  [release/1.0.0\nподготовка релиза] as brel
+}
+
+' --- Управление проектом и документация ---
+' GitHub Project: четыре списка вместо стандартных трёх.
+' «To check» отражает обязательную передачу на тестирование.
+component "GitHub Project\nTo do · In progress · To check · Done" as project
+component "Wiki\nHome · Requirements · File diagram ·\nAdditional spec · DB schema · API · MCP" as wikidoc
+component "GitHub Pages\nдокументация проекта" as pages
+
+' Поток разработки: feature-ветка -> develop -> main.
+bf1 --> bdev
+bf2 --> bdev
+bf3 --> bdev
+bdev --> bmain : merge + tag + release
+brel --> bmain : tag v1.0.0
+
+' Публикация документации: README и каталог docs/ попадают
+' в сайт GitHub Pages, вики ведётся параллельно вручную.
+docrepo --> pages
+wikidoc ..> pages : зеркалирование
+
+' Управление задачами и артефактами лабораторной.
+bdev ..> project : тикет → задача
+ciwf ..> project : статус этапов конвейера
+
+' Взаимодействие модулей между собой.
+' Веб и мобильный клиенты ходят в серверное приложение по REST.
+' MCP-сервер работает поверх API или напрямую с базой данных.
+apirepo ..> webrepo : "REST /api/v1 (CORS)"
+apirepo ..> mobrepo : "REST /api/v1 (токены)"
+infmcp ..> apirepo : "REST / прямой доступ к БД"
+
+' Состав инфраструктурного репозитория и то, что он публикует.
+compose ..> infbackend
+compose ..> inffrontend
+compose ..> infmcp
+sonar ..> ciwf : Quality Gate
+ciwf ..> bmain : "gate нужен для сборки образа"
+
+note bottom of bmain
+  Правила:
+  1. Разработка только через git
+  2. main защищён: 1 approve + зелёный CI
+  3. Каждая задача из Project = issue с чеклистом
+  4. Merge в develop → тестирование → main
+end note
+
+note bottom of infbackend
+  Инфраструктура задания 6 —
+  учебный стенд, а не код магазина.
+  Перенос в hci-11-backend-api-group-1
+  запланирован на курсовую работу.
+end note
+@enduml

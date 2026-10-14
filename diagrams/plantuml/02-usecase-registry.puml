@@ -1,0 +1,134 @@
+@startuml 02-usecase-registry
+
+' ============================================================================
+'  РЕЕСТР ВАРИАНТОВ ИСПОЛЬЗОВАНИЯ PCHelper
+'  Лабораторная работа № 4, задание 1, пункт 1.
+'
+'  Назначение: показать все прецеденты системы, сгруппированные по модулям,
+'  вместе со связями «актор -> прецедент» и «прецедент -> прецедент».
+'
+'  Расшифровка связей между прецедентами:
+'    <<include>> — прецедент ВСЕГДА вызывает указанный (вложенный вызов);
+'    <<extend>>  — прецедент ДОБАВЛЯЕТ указанное поведение по условию.
+'
+'  Всего 25 прецедентов (UC-01…UC-25), нумерация сквозная по модулям.
+'  Каждому прецеденту в разделе 3.3 отчёта соответствует HTTP-маршрут.
+' ============================================================================
+title Реестр вариантов использования PCHelper
+left to right direction
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+skinparam shadowing false
+skinparam actorBackgroundColor #ffffff
+skinparam actorBorderColor #1976d2
+skinparam actorFontColor #0d47a1
+skinparam usecaseBackgroundColor #e8e8e8
+skinparam usecaseBorderColor #bdbdbd
+skinparam usecaseFontColor #212121
+skinparam packageBackgroundColor #fafafa
+skinparam packageBorderColor #bdbdbd
+skinparam ArrowColor #1976d2
+hide empty description
+
+actor "Гость" as Guest
+actor "Покупатель" as Customer
+actor "Менеджер" as Manager
+actor "AI-ассистент" as Agent
+
+rectangle "PCHelper" {
+
+  ' Модуль каталога: чтение данных, доступен без авторизации.
+  package "Модуль каталога\n(UC-01…UC-02, UC-06)" #fafafa {
+    usecase "UC-01\nПросмотр каталога\nкомплектующих" as UC01
+    usecase "UC-02\nФильтрация, сортировка\nи поиск" as UC02
+    usecase "UC-06\nПросмотр готовых\nконфигураций" as UC06
+  }
+
+  ' Модуль конфигуратора: пошаговая сборка и серверная
+  ' проверка совместимости по 8 правилам.
+  package "Модуль конфигуратора\n(UC-03…UC-05, UC-07)" #fafafa {
+    usecase "UC-03\nПошаговая сборка ПК" as UC03
+    usecase "UC-04\nПроверка совместимости" as UC04
+    usecase "UC-05\nРасчёт мощности БП" as UC05
+    usecase "UC-07\nДиагностика неполадок" as UC07
+  }
+
+  ' Модуль аккаунта: регистрация, вход, обновление access-токена.
+  package "Модуль аккаунта\n(UC-08, UC-09)" #fafafa {
+    usecase "UC-08\nРегистрация" as UC08
+    usecase "UC-09\nАутентификация" as UC09
+  }
+
+  ' Модуль корзины и заказов: основной торговый сценарий.
+  package "Модуль корзины и заказов\n(UC-10…UC-13, UC-15)" #fafafa {
+    usecase "UC-10\nУправление корзиной" as UC10
+    usecase "UC-11\nОформление заказа" as UC11
+    usecase "UC-12\nИстория заказов" as UC12
+    usecase "UC-13\nОтмена заказа" as UC13
+    usecase "UC-15\nУведомление о статусе" as UC15
+  }
+
+  ' Модуль сборок и отзывов: серверное хранение сборок, отзывы.
+  package "Модуль сборок и отзывов\n(UC-14, UC-16)" #fafafa {
+    usecase "UC-14\nСохранение сборок" as UC14
+    usecase "UC-16\nОтзыв о товаре" as UC16
+  }
+
+  ' Админ-модуль: доступен только роли manager (требование FR-08).
+  package "Админ-модуль\n(UC-17…UC-21)" #fafafa {
+    usecase "UC-17\nСписок заказов" as UC17
+    usecase "UC-18\nСмена статуса заказа" as UC18
+    usecase "UC-19\nКомментарий к заказу" as UC19
+    usecase "UC-20\nТовары и остатки" as UC20
+    usecase "UC-21\nАналитика продаж" as UC21
+  }
+
+  ' Агентный модуль MCP: действия AI-ассистента (задание 5).
+  package "Агентный модуль MCP\n(UC-22…UC-25)" #fff8e1 {
+    usecase "UC-22\nАгентная сборка по бюджету" as UC22
+    usecase "UC-23\nАгентная проверка совместимости" as UC23
+    usecase "UC-24\nАгентный мониторинг заказов" as UC24
+    usecase "UC-25\nАгентное управление остатками" as UC25
+  }
+}
+
+' Связи «действующее лицо -> вариант использования».
+' Гость: только чтение каталога и работа конфигуратора.
+Guest --> UC01
+Guest --> UC02
+Guest --> UC03
+Guest --> UC05
+Guest --> UC06
+Guest --> UC07
+
+Customer --> UC08
+Customer --> UC09
+Customer --> UC10
+Customer --> UC11
+Customer --> UC12
+Customer --> UC13
+Customer --> UC14
+Customer --> UC15
+Customer --> UC16
+
+Manager --> UC17
+Manager --> UC18
+Manager --> UC19
+Manager --> UC20
+Manager --> UC21
+
+Agent --> UC22
+Agent --> UC24
+Agent --> UC25
+
+' Связи «вариант использования -> вариант использования»:
+' вложенные вызовы (include) и условные расширения (extend).
+UC03 ..> UC04 : <<include>>
+UC11 ..> UC10 : <<include>>
+UC11 ..> UC04 : <<include>>
+UC18 ..> UC11 : <<extend>>
+UC20 ..> UC01 : <<extend>>
+UC22 ..> UC04 : <<include>>
+UC24 ..> UC12 : <<include>>
+UC25 ..> UC20 : <<extend>>
+@enduml

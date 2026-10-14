@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Дополнительная спецификация — PCHelper</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><div class="wrap">
+  <h1>Дополнительная спецификация</h1>
+  <p>Ограничения, безопасность и надёжность</p>
+</div></header>
+<nav><div class="wrap"><a href="index.html">Главная</a><a href="requirements.html">Функциональные требования</a><a href="files.html">Файлы приложения</a><a href="db.html">Схема базы данных</a><a href="api.html">API-проекта</a><a href="mcp.html">MCP-сервер</a><a href="spec.html" class="on">Доп. спецификация</a><a href="infra.html">Инфраструктура и CI/CD</a><a href="labs.html">Лабораторные работы</a><a href="presentation.html">Презентация</a></div></nav>
+<main class="wrap">
+<h3>Дополнительная спецификация</h3>
+<p><strong>Ограничения</strong></p>
+<div class='table-wrap'><table><thead><tr><th>Ограничение</th><th>Значение</th></tr></thead><tbody><tr><td>Валюта</td><td>Только BYN, без конвертации и округлений</td></tr><tr><td>Язык интерфейса и API</td><td>Русский; описания ошибок и сообщения LLM — на русском</td></tr><tr><td>Рынок</td><td>Беларусь (поле НДС и коды валют не предусмотрено)</td></tr><tr><td>Роли</td><td>Только <code>customer</code> и <code>manager</code>; отдельной роли администратора нет</td></tr><tr><td>Бесплатные хостинги</td><td>Render засыпает после 15 минут простоя — первый запрос будет медленным</td></tr></tbody></table></div>
+<p><strong>Безопасность</strong></p>
+<div class='table-wrap'><table><thead><tr><th>Требование</th><th>Реализация</th></tr></thead><tbody><tr><td>Пароли не хранятся в открытом виде</td><td>Хеширование bcrypt, поле <code>password_hash</code></td></tr><tr><td>Токены</td><td>JWT access (30 мин) + opaque refresh (30 дней) в БД в виде хеша</td></tr><tr><td>CORS</td><td>Явный список разрешённых источников вместо <code>origin: true</code></td></tr><tr><td>SQL-инъекции</td><td>Только параметризованные запросы через репозитории</td></tr><tr><td>Разграничение доступа</td><td>Middleware <code>requireAuth</code> и <code>requireRole</code> на всех защищённых маршрутах</td></tr><tr><td>PII в журналах</td><td>Маскирование телефона, e-mail и адреса перед записью</td></tr><tr><td>Служебный ключ</td><td><code>SUPABASE_SERVICE_ROLE_KEY</code> не используется в браузерном коде</td></tr></tbody></table></div>
+<p><strong>Надёжность</strong></p>
+<div class='table-wrap'><table><thead><tr><th>Требование</th><th>Реализация</th></tr></thead><tbody><tr><td>Отказоустойчивость БД</td><td>Транзакция при оформлении заказа: проверка остатков → резерв → позиции → очистка корзины</td></tr><tr><td>Согласованность остатков</td><td><code>CHECK (зарезервировано &lt;= количество)</code> в БД</td></tr><tr><td>Целостность заказов</td><td>Снимок цен и названий в <code>Заказ_Позиции</code></td></tr><tr><td>Healthcheck</td><td>В каждом Docker-образе; <code>depends_on: condition: service_healthy</code></td></tr><tr><td>Устойчивость к ошибкам</td><td>Единый формат ошибки <code>{error: {code, message}}</code></td></tr></tbody></table></div>
+<p><strong>Масштабирование</strong></p>
+<div class='table-wrap'><table><thead><tr><th>Направление</th><th>Текущее состояние</th><th>План</th></tr></thead><tbody><tr><td>Каталог</td><td>Чтение через PostgREST, индексированные фильтры</td><td>Перенос на отдельный read-replica при росте трафика</td></tr><tr><td>Корзина</td><td>Хранится в PostgreSQL</td><td>Перенос в Redis с записью в БД при оформлении</td></tr><tr><td>Конфигуратор</td><td>Проверка совместимости на сервере</td><td>Кеширование результатов в Redis по хешу набора идентификаторов</td></tr><tr><td>API</td><td>Горизонтально масштабируем (stateless, кроме сессий в Redis)</td><td>—</td></tr></tbody></table></div>
+</main>
+<footer>Лабораторная работа № 4 — PCHelper &middot; <a href="https://github.com/AlekseiNarkevich/pchelper-infra">репозиторий</a> &middot; <a href="https://pchelper-infra.onrender.com">развёрнутый сервис</a> &middot; <a href="https://sonarcloud.io/dashboard?id=AlekseiNarkevich_pchelper-infra">SonarCloud</a></footer>
+</body>
+</html>

@@ -1,0 +1,159 @@
+@startuml 08-mcp-architecture
+
+' ============================================================================
+'  АРХИТЕКТУРА MCP-СЕРВЕРА PCHelper
+'  Лабораторная работа № 4, задание 5.
+'
+'  MCP (Model Context Protocol) задаёт три вида примитивов:
+'    Tools      — действия, которые агент может совершать (14 штук);
+'    Resources  — данные, которые агент может только прочитать (9 штук);
+'    Prompts    — шаблоны сообщений для типовых сценариев (5 штук).
+'
+'  Состав слоёв сервера:
+'    Transport      — stdio (Claude Desktop, Cursor) и Streamable HTTP
+'                     (MCP Inspector, контейнер, удалённый запуск);
+'    Примитивы MCP  — регистрация Tools / Resources / Prompts;
+'    Доменная логика — валидация аргументов и бизнес-правила;
+'    Аудит         — журнал действий агента и маскирование PII.
+'
+'  Режимы работы с данными:
+'    MVP (сейчас) — прямой доступ к mock-базе SQLite;
+'    прод         — вызовы REST API api.pchelper.by.
+'  Имена таблиц в SQLite совпадают с физической моделью PostgreSQL,
+'  поэтому переключение режима затрагивает только слой db.py.
+' ============================================================================
+title Архитектура MCP-сервера PCHelper
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #fafafa
+  BorderColor #bdbdbd
+  FontColor #0d47a1
+  FontStyle bold
+}
+skinparam ArrowColor #1976d2
+skinparam ArrowFontColor #0d47a1
+
+actor "Пользователь" as user
+actor "Менеджер" as manager
+
+' Хосты MCP: приложения, в которые подключается сервер.
+' Cursor и Claude Desktop запускают сервер как дочерний процесс (stdio).
+package "MCP-клиенты (хосты)" #fafafa {
+  component "Claude Desktop" as c1
+  component "Cursor" as c2
+  component "MCP Inspector\n(npx @modelcontextprotocol/inspector)" as c3
+  component "Кастомный чат-бот" as c4
+}
+
+package "MCP-сервер PCHelper\nPython · MCP Python SDK (FastMCP)" #ffffff {
+
+' Транспорт. Один и тот же код обслуживает оба варианта;
+' переключение — флагом --http при запуске server.py.
+  package "Transport-слой" #fafafa {
+    component "stdio-сервер\n(claude_desktop_config.json)" as T1
+    component "Streamable HTTP\n:8080/mcp" as T2
+  }
+
+' Примитивы MCP — публичный контракт сервера.
+' Здесь фиксируются имена и описания, которые видит LLM.
+  package "Слой примитивов MCP" #fafafa {
+    component "Tools (14)\nsearch · compatibility · cart ·\norders · stock" as TOOLS
+    component "Resources (9)\npchelper://catalog · orders · promo · audit" as RES
+    component "Prompts (5)\nassemble_pc · order_refund ·\ndaily_digest" as PROMPTS
+  }
+
+' Доменная логика. Не зависит от пакета mcp — поэтому её
+' покрывают быстрые юнит-тесты pytest (39 тестов).
+  package "Слой доменной логики" #fafafa {
+    component "Валидация аргументов\n(JSON Schema + Pydantic)" as VAL
+    component "Сервис совместимости\n(8 правил)" as COMP
+    component "Сервис заказов\n(статусная машина,\nзапрет отмены доставленного)" as ORD
+    component "Сервис промокодов\nи возвратов" as PROMO
+    component "Сервис остатков\n(check_stock)" as STK
+  }
+
+' Аудит и безопасность. Логируются ВСЕ вызовы инструментов
+' и чтения ресурсов, персональные данные маскируются.
+  package "Слой аудита и безопасности" #fff8e1 {
+    component "AgentAuditMiddleware\nлогирует каждый вызов" as AUD
+    component "RoleGuard\nguest · customer · manager" as GUARD
+    component "PII-маскирование\n(телефон, e-mail)" as PII
+  }
+}
+
+' Источники данных: mock-база SQLite (MVP) и REST API (прод).
+package "Источники данных" #fafafa {
+  database "SQLite (MVP)\npchelper_mcp.db" as lite
+  component "REST API PCHelper\napi/v1 (production-режим)" as rest
+}
+
+' Связи: пользователь -> хост MCP -> транспорт -> примитив.
+user --> c1
+manager --> c2
+manager --> c3
+user --> c4
+
+c1 --> T1
+c2 --> T1
+c3 --> T2
+c4 --> T2
+
+T1 --> TOOLS
+T1 --> RES
+T1 --> PROMPTS
+T2 --> TOOLS
+T2 --> RES
+T2 --> PROMPTS
+
+PROMPTS ..> RES : «сначала прочитай ресурс»
+TOOLS --> VAL
+VAL --> GUARD
+VAL --> PII
+VAL --> COMP
+VAL --> ORD
+VAL --> PROMO
+VAL --> STK
+RES --> STK
+RES --> ORD
+RES --> PROMO
+
+TOOLS --> AUD
+RES --> AUD
+AUD --> lite
+
+COMP --> lite
+ORD --> lite
+PROMO --> lite
+STK --> lite
+
+COMP ..> rest : прод-режим
+ORD ..> rest : прод-режим
+STK ..> rest : прод-режим
+
+' КЛЮЧЕВОЕ БИЗНЕС-ПРАВИЛО (обязательное по заданию 5):
+' агент не может отменить уже собранный, отправленный
+' или доставленный заказ. Отмена разрешена только из статусов
+' «Новый» и «В обработке».
+note right of ORD
+  Бизнес-правило:
+  отмена заказа
+  запрещена для статусов
+  «Собран», «Отправлен»,
+  «Доставлен»
+end note
+
+' МЕРЫ ПРОТИВ ГАЛЛЮЦИНАЦИЙ LLM:
+' 1) инструмент track_order требует ТОЧНОГО tracking_number,
+'    который LLM получает только из ресурса orders://recent;
+' 2) промпт order_refund сначала читает ресурс с правилами
+'    возврата и лишь потом считает сумму.
+note bottom of RES
+  Инструменты track_order
+  и order_refund требуют
+  tracking_number / promo_code,
+  которые LLM получает
+  только из ресурсов
+end note
+@enduml

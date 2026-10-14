@@ -1,0 +1,147 @@
+@startuml 07-api-layers
+
+' ============================================================================
+'  АРХИТЕКТУРА REST API PCHelper — СЛОИ BACKEND
+'  Лабораторная работа № 4, задание 3 (архитектурное обоснование API).
+'
+'  Модель разбиения на слои (Clean Architecture в упрощённом виде):
+'
+'    routes       -> HTTP: метод, путь, параметры. Бизнес-логики НЕТ.
+'    controllers  -> HTTP: разбор и валидация тела запроса, код ответа.
+'    services     -> ПРЕДМЕТНАЯ ЛОГИКА. Не знает, что такое HTTP.
+'    repositories -> ЕДИНСТВЕННОЕ место, где известен SQL и Supabase.
+'
+'  Зачем это нужно: одни и те же сервисы (CompatibilityService, OrderService)
+'  используются и REST-API, и MCP-сервером задания 5. Благодаря этому
+'  правила совместимости и статусная машина заказа не дублируются.
+'
+'  Обходные пути: spec -> routes -> middleware -> routes -> controllers
+'  -> services -> repositories -> (PostgreSQL, Redis).
+' ============================================================================
+title Архитектура REST API PCHelper — слои backend
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #fafafa
+  BorderColor #bdbdbd
+  FontColor #0d47a1
+  FontStyle bold
+}
+skinparam ArrowColor #1976d2
+
+actor "Клиент" as client
+database "PostgreSQL\n(Supabase)" as db
+database "Redis" as redis
+
+' Слой 1. Транспорт: то, что непосредственно видно снаружи.
+' CORS, разбор JSON, ограничение частоты запросов, Swagger UI.
+package "Слой представления (transport)" #fafafa {
+  component "app.js\n(Express bootstrap)\nCORS · JSON · Rate limit\n· Swagger UI /docs" as L0
+  component "JWT middleware\n(requireAuth · requireRole)" as L0b
+}
+
+' Слой 2. Маршруты: соответствие «метод + путь» -> контроллер.
+' Никакой логики, только адресация.
+package "Слой маршрутов (routes)" #fafafa {
+  component "auth.routes" as R1
+  component "catalog.routes" as R2
+  component "configurator.routes" as R3
+  component "cart.routes" as R4
+  component "orders.routes" as R5
+  component "builds.routes" as R6
+  component "admin.routes" as R7
+}
+
+' Слой 3. Контроллеры: HTTP-обвязка сервисов.
+package "Слой контроллеров (controllers)" #fafafa {
+  component "AuthController" as C1
+  component "CatalogController" as C2
+  component "ConfiguratorController\n+ CompatibilityService" as C3
+  component "CartController" as C4
+  component "OrderController" as C5
+  component "BuildController" as C6
+  component "AdminController" as C7
+}
+
+' Слой 4. Сервисы: здесь живут правила совместимости,
+' статусная машина заказа, расчёт мощности БП, аудит агента.
+package "Слой сервисов (services) — бизнес-логика" #fafafa {
+  component "AuthService\n(BCrypt · JWT)" as S1
+  component "CatalogService\n(фильтры · пагинация)" as S2
+  component "CompatibilityService\n8 правил совместимости" as S3
+  component "PsuCalculator\n(TDP × 1.25)" as S4
+  component "CartService" as S5
+  component "OrderService\n(статусная машина)" as S6
+  component "StockService" as S7
+  component "NotificationService\n(SMTP)" as S8
+  component "AgentAuditService\n(журнал действий)" as S9
+}
+
+' Слой 5. Репозитории: единственное место, где известен SQL.
+' mcp.tool-adapter позволяет MCP-серверу вызывать те же сервисы.
+package "Слой репозиториев (repositories)" #fafafa {
+  component "supabase.client" as Q1
+  component "*.repository\n(PostgREST → SQL)" as Q2
+  component "mcp.tool-adapter" as Q3
+}
+
+' Спецификация API живёт отдельно от кода и проверяется линтером
+' на этапе CI (задание 6, пункт 11).
+package "Спецификация API" #fff8e1 {
+  component "openapi.yaml\n(OpenAPI 3.0.3)" as O1
+  component "Генерация Swagger\nв CI (redocly)" as O2
+}
+
+' Связи между слоями. Каждый слой знает только о слое ниже себя
+' (направление зависимостей — сверху вниз).
+client --> L0
+L0 --> L0b
+L0b --> R1
+L0b --> R2
+L0b --> R3
+L0b --> R4
+L0b --> R5
+L0b --> R6
+L0b --> R7
+
+R1 --> C1
+R2 --> C2
+R3 --> C3
+R4 --> C4
+R5 --> C5
+R6 --> C6
+R7 --> C7
+
+C1 --> S1
+C2 --> S2
+C3 --> S3
+C3 --> S4
+C4 --> S5
+C5 --> S6
+C5 --> S8
+C6 --> S6
+C7 --> S7
+S1 --> S9
+S6 --> S7
+S6 --> S9
+
+S1 --> Q1
+S2 --> Q2
+S3 --> Q2
+S4 --> Q2
+S5 --> Q2
+S6 --> Q2
+S7 --> Q2
+S8 --> Q2
+S9 --> Q2
+
+Q1 --> db
+Q2 --> db
+Q3 --> db
+Q2 --> redis
+
+O1 ..> L0 : описывает
+O2 ..> O1 : собирает
+Q3 ..> S3 : MCP вызывает те же сервисы
+@enduml

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MCP-сервер — PCHelper</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><div class="wrap">
+  <h1>MCP-сервер</h1>
+  <p>Задание 5 — проектирование агентного доступа к системе</p>
+</div></header>
+<nav><div class="wrap"><a href="index.html">Главная</a><a href="requirements.html">Функциональные требования</a><a href="files.html">Файлы приложения</a><a href="db.html">Схема базы данных</a><a href="api.html">API-проекта</a><a href="mcp.html" class="on">MCP-сервер</a><a href="spec.html">Доп. спецификация</a><a href="infra.html">Инфраструктура и CI/CD</a><a href="labs.html">Лабораторные работы</a><a href="presentation.html">Презентация</a></div></nav>
+<main class="wrap">
+<figure><img src="img/08-mcp-architecture.png" alt="Архитектура MCP-сервера" loading="lazy"><figcaption>Архитектура MCP-сервера</figcaption></figure><figure><img src="img/14-mcp-schema.png" alt="JSON-схемы примитивов MCP (Tools, Resources, Prompts)" loading="lazy"><figcaption>JSON-схемы примитивов MCP (Tools, Resources, Prompts)</figcaption></figure><figure><img src="img/09-mcp-sequence.png" alt="Последовательность взаимодействия агента с системой" loading="lazy"><figcaption>Последовательность взаимодействия агента с системой</figcaption></figure>
+<h3>Цель и границы MVP</h3>
+<p><strong>Цель:</strong> спроектировать и реализовать MVP MCP-сервера, позволяющего AI-ассистенту взаимодействовать с базой данных или API системы PCHelper.</p>
+<p><strong>Границы MVP:</strong></p>
+<div class='table-wrap'><table><thead><tr><th>Входит</th><th>Не входит (планируется следующим этапом)</th></tr></thead><tbody><tr><td>13 инструментов (Tools)</td><td>Автоматическое выполнение заказа без подтверждения</td></tr><tr><td>9 ресурсов (Resources)</td><td>Потоковый доступ (streaming)</td></tr><tr><td>5 шаблонов промптов (Prompts)</td><td>Подключение к нескольким БД одновременно</td></tr><tr><td>SQLite mock-база, имена таблиц совпадают с PostgreSQL</td><td>Прод-режим через REST API</td></tr><tr><td>Аудит действий агента</td><td>Полноценная RBAC-модель для агентов</td></tr><tr><td>39 юнит-тестов доменной логики</td><td>Нагрузочное тестирование</td></tr></tbody></table></div>
+<h3>Обязательные требования задания и их реализация</h3>
+<p>Методичка задаёт три обязательных условия. Ниже — где каждое из них реализовано в коде.</p>
+<div class='table-wrap'><table><thead><tr><th>Требование из задания</th><th>Реализация</th><th>Где посмотреть</th></tr></thead><tbody><tr><td>Описать сущности системы</td><td>9 сущностей: Компонент (8 видов), Пользователь, Корзина, Заказ, Склад, Промокод, Справочник переходов, Аудит</td><td><code>mcp/schema.sql</code>, раздел 5.3</td></tr><tr><td>Спроектировать JSON-схемы для Tools</td><td>13 инструментов с типизированными сигнатурами; JSON Schema генерируется из них SDK</td><td><a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/mcp/server.py"><code>mcp/server.py</code></a>, раздел 5.5</td></tr><tr><td>Определить Resources</td><td>9 ресурсов <code>pchelper://</code> — каталог, правила, заказы, корзина, промокоды, аудит</td><td><a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/mcp/server.py"><code>mcp/server.py</code></a>, раздел 5.6</td></tr><tr><td>Разработать Prompts</td><td>5 шаблонов: сборка, проверка, возврат, отчёт, дайджест</td><td><a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/mcp/server.py"><code>mcp/server.py</code></a>, раздел 5.7</td></tr><tr><td>Реализовать бекенд с mock-базой</td><td>SQLite <code>pchelper_mcp.db</code>, имена таблиц совпадают с <code>db/01…02</code></td><td><code>mcp/schema.sql</code>, <code>mcp/seed.sql</code></td></tr><tr><td><strong>Агент не может отменить доставленный заказ</strong></td><td>Три уровня защиты (сервис → справочник переходов → триггер БД)</td><td><code>mcp/services.py</code> → <code>cancel_order</code>, раздел 5.8</td></tr><tr><td><strong>Resource <code>orders://recent</code></strong></td><td><code>pchelper://orders/recent</code> — последние 10 заказов с трек-номерами</td><td><a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/mcp/server.py"><code>mcp/server.py</code></a> → <code>resource_orders_recent</code></td></tr><tr><td><strong>Tool <code>track_order</code> со строгим <code>tracking_number</code></strong></td><td>Несовпадение с БД → ошибка с указанием прочитать ресурс</td><td><code>mcp/services.py</code> → <code>track_order</code>, раздел 5.8</td></tr><tr><td>Логирование действий агента</td><td><code>audit.py</code>: время, агент, примитив, аргументы, результат, код, PII-маскирование</td><td><code>mcp/audit.py</code>, раздел 5.9</td></tr><tr><td>Документация README.md</td><td>Инструкция по развёртыванию, 4 сценария запросов, таблицы примитивов</td><td><a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/mcp/README.md"><code>mcp/README.md</code></a></td></tr><tr><td>Проверка через MCP Inspector</td><td>Пошаговая инструкция и фактические скриншоты</td><td><a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/mcp/README.md"><code>mcp/README.md</code></a>, раздел 5.11</td></tr></tbody></table></div>
+<h3>Сущности системы</h3>
+<div class='table-wrap'><table><thead><tr><th>Сущность</th><th>Таблица</th><th>Ключевые поля</th><th>Роль в системе</th></tr></thead><tbody><tr><td>Компонент</td><td><code>Процессоры</code>, <code>МатеринскиеПлаты</code>, <code>ОЗУ</code>, <code>СистемыОхлаждения</code>, <code>Видеокарты</code>, <code>Накопители</code>, <code>БлокиПитания</code>, <code>Корпуса</code></td><td><code>id</code>, <code>название</code>, <code>цена</code>, характеристики</td><td>Товар каталога; 8 видов из-за гетерогенности</td></tr><tr><td>Пользователь</td><td><code>Пользователи</code></td><td><code>id</code>, <code>имя</code>, <code>email</code>, <code>роль</code></td><td>Субъект действий агента от его имени</td></tr><tr><td>Корзина</td><td><code>Корзины</code>, <code>Корзина_Позиции</code></td><td><code>пользователь_id</code>, позиции</td><td>Черновик заказа</td></tr><tr><td>Заказ</td><td><code>Заказы</code>, <code>Заказ_Позиции</code></td><td><code>номер</code>, <code>статус</code>, <code>итоговая_сумма</code>, снимок позиций</td><td>Подтверждённая покупка</td></tr><tr><td>Склад</td><td><code>Наличие</code></td><td><code>тип_компонента</code>, <code>идентификатор</code>, <code>количество</code>, <code>зарезервировано</code></td><td>Ограничение возможностей оформления</td></tr><tr><td>Промокод</td><td><code>Промокоды</code></td><td><code>код</code>, <code>тип_скидки</code>, <code>значение</code>, <code>мин_сумма</code></td><td>Скидка</td></tr><tr><td>Переход статуса</td><td><code>ПереходыСтатусовЗаказа</code></td><td><code>из_status</code>, <code>в_status</code>, <code>роль_кто</code></td><td>Бизнес-правило жизненного цикла заказа</td></tr><tr><td>Действие агента</td><td><code>ЖурналДействийАгента</code></td><td><code>момент</code>, <code>агент</code>, <code>инструмент</code>, <code>аргументы</code>, <code>результат</code></td><td>Аудит</td></tr></tbody></table></div>
+<p><strong>Именованные в mock-базе MCP-сервера теми же именами, что и в PostgreSQL (<a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/db/01_schema.sql"><code>db/01_schema.sql</code></a>, <a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/db/02_marketplace.sql"><code>db/02_marketplace.sql</code></a>)</strong> — это сделано намеренно, чтобы при переходе на PostgreSQL менялся только слой <code>db.py</code>.</p>
+<h3>Архитектура MCP-сервера</h3>
+<p><strong>Файл:</strong> <a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/08-mcp-architecture.puml"><code>diagrams/plantuml/08-mcp-architecture.puml</code></a></p>
+<h5>Решение: два транспорта</h5>
+<div class='table-wrap'><table><thead><tr><th>Транспорт</th><th>Когда используется</th><th>Как запустить</th></tr></thead><tbody><tr><td><strong>stdio</strong></td><td>Claude Desktop, Cursor — сервер запускается как дочерний процесс клиента</td><td><code>python server.py</code></td></tr><tr><td><strong>Streamable HTTP</strong></td><td>MCP Inspector, удалённый запуск, интеграция в контейнер</td><td><code>python server.py --http --port 8080</code></td></tr></tbody></table></div>
+<p>Один и тот же код обслуживает оба транспорта — переключение флагом <code>--http</code> в функции <code>main</code> (4 строки, <a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/mcp/server.py"><code>mcp/server.py</code></a>).</p>
+<h5>Решение: доменная логика отделена от MCP</h5>
+<pre><code>server.py    ← тонкий слой: регистрация примитивов, вызов services.py
+services.py  ← доменная логика, НЕ импортирует mcp
+audit.py     ← аудит, не зависит ни от mcp, ни от домена
+db.py        ← доступ к данным</code></pre>
+<p><strong>Обоснование:</strong> доменную логику можно покрыть обычными юнит-тестами <code>pytest</code> <strong>без установки пакета <code>mcp</code></strong>. CI запускает эти тесты за секунды. Если бы логика жила внутри декораторов <code>@mcp.tool()</code>, тестировать её пришлось бы через протокол, что в разы медленнее и хрупче.</p>
+<h3>Tools — 13 инструментов</h3>
+<p><strong>Файл:</strong> <a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/14-mcp-schema.puml"><code>diagrams/plantuml/14-mcp-schema.puml</code></a></p>
+<h5>Принципы типизации аргументов</h5>
+<p>Инструменты типизированы по правилам MCP Python SDK:</p>
+<div class='table-wrap'><table><thead><tr><th>Тип</th><th>Использование</th><th>Пример</th></tr></thead><tbody><tr><td><code>Literal[...]</code></td><td>Закрытое множество значений → перечисление в JSON Schema</td><td><code>component_type: Literal["cpu","motherboard",…]</code></td></tr><tr><td><code>int</code></td><td>Целое число; границы проверяются в сервисе</td><td><code>quantity: int = 1</code> (проверка 1…10)</td></tr><tr><td><code>int | None</code></td><td>Необязательный параметр</td><td><code>gpu_id: int | None = None</code></td></tr><tr><td><code>list[int] | None</code></td><td>Массив с необязательным присутствием</td><td><code>storage_ids: list[int] | None = None</code></td></tr></tbody></table></div>
+<p>JSON Schema формируется автоматически из этих аннотаций — отдельного файла со схемами не требуется, расхождение между описанием и кодом невозможно по построению.</p>
+<h5>Таблица инструментов с JSON-схемами</h5>
+<div class='table-wrap'><table><thead><tr><th>Инструмент</th><th>Входная JSON-схема (сокращённо)</th><th>Выход</th></tr></thead><tbody><tr><td><code>search_components</code></td><td><code>{component_type?: enum, brand?: string, query?: string, min_price?: integer, max_price?: integer, sort?: enum, limit?: integer(1…100)}</code></td><td><code>[Component]</code></td></tr><tr><td><code>get_component</code></td><td><code>{component_type: enum, component_id: integer ≥ 1}</code></td><td><code>Component</code></td></tr><tr><td><code>check_compatibility</code></td><td><code>{cpu_id: integer, motherboard_id: integer, ram_id: integer, cooling_id?: integer, gpu_id?: integer|null, storage_ids?: integer[], psu_id?: integer, case_id?: integer}</code></td><td><code>{compatible: boolean, errors: Issue[], warnings: Issue[], totalPrice, requiredPsuWatts}</code></td></tr><tr><td><code>recommend_psu</code></td><td><code>{cpu_id: integer, gpu_id?: integer, headroom?: number(1.0…2.0)}</code></td><td><code>{cpuTdp, gpuTdp, recommendedWatts, recommendedWattageClass, alternatives[]}</code></td></tr><tr><td><code>get_cart</code></td><td><code>{user_id: integer}</code></td><td><code>Cart</code></td></tr><tr><td><code>add_to_cart</code></td><td><code>{user_id: integer, component_type: enum, component_id: integer, quantity?: integer(1…10)}</code></td><td><code>Cart</code></td></tr><tr><td><code>apply_promo_code</code></td><td><code>{user_id: integer, code: string}</code></td><td><code>{code, type, value, discount, totalPrice}</code></td></tr><tr><td><code>create_order</code></td><td><code>{user_id: integer, phone: string, delivery_method?: enum, payment_method?: enum, address?: string, promo_code?: string}</code></td><td><code>Order</code></td></tr><tr><td><code>list_orders</code></td><td><code>{user_id?: integer, status?: enum, limit?: integer}</code></td><td><code>Order[]</code></td></tr><tr><td><code>track_order</code></td><td><code>{order_id: integer, tracking_number: string — ОБЯЗАТЕЛЬНО}</code></td><td><code>{orderId, orderNumber, trackingNumber, status, carrier}</code></td></tr><tr><td><code>cancel_order</code></td><td><code>{order_id: integer, reason: string(1…500), user_id?: integer}</code></td><td><code>Order</code></td></tr><tr><td><code>set_order_status</code></td><td><code>{order_id: integer, status: enum, comment?: string}</code></td><td><code>Order</code></td></tr><tr><td><code>check_stock</code></td><td><code>{component_type?: enum, component_id?: integer, only_low?: boolean, limit?: integer}</code></td><td><code>StockLevel[]</code></td></tr></tbody></table></div>
+<h5>Возвращаемая структура <code>Issue</code></h5>
+<pre class="lang-json"><code>{
+  "level": "error",
+  "code": "PSU_INSUFFICIENT",
+  "field": "psuId",
+  "message": "Требуется минимум 438 Вт (TDP CPU 65 + GPU 245, запас 25 %), выбран БП на 400 Вт."
+}</code></pre>
+<p>Коды ошибок <strong>те же самые</strong>, что и в <code>openapi.yaml</code> и в функции БД <code>fn_check_compatibility</code>. Единый словарь кодов позволяет фронтенду, REST-клиенту и LLM одинаково понимать причину проблемы.</p>
+<h3>Resources — 9 ресурсов</h3>
+<p>Пять первых ресурсов статические, четыре последних — <strong>шаблонные</strong> (содержат <code>{параметр}</code> и запрашиваются через <code>resources/templates/list</code>).</p>
+<div class='table-wrap'><table><thead><tr><th>URI</th><th>Тип</th><th>Содержимое</th></tr></thead><tbody><tr><td><code>pchelper://catalog/{component_type}</code></td><td>Динамический</td><td>Каталог комплектующих по типу (<code>cpu</code>, <code>ram</code>, <code>gpu</code>, …), до 100 позиций</td></tr><tr><td><code>pchelper://compatibility/rules</code></td><td>Статический</td><td>8 правил совместимости текстом (Markdown)</td></tr><tr><td><code>pchelper://orders/recent</code></td><td>Динамический</td><td><strong>Последние 10 заказов с трек-номерами</strong> — обязательный ресурс из задания</td></tr><tr><td><code>pchelper://users/{user_id}/orders</code></td><td>Динамический</td><td>История заказов покупателя</td></tr><tr><td><code>pchelper://users/{user_id}/cart</code></td><td>Динамический</td><td>Корзина покупателя</td></tr><tr><td><code>pchelper://users/{user_id}/builds</code></td><td>Динамический</td><td>Сохранённые сборки</td></tr><tr><td><code>pchelper://policies/refund</code></td><td>Статический</td><td>Правила возврата, промокоды, формула расчёта</td></tr><tr><td><code>pchelper://audit/recent</code></td><td>Динамический</td><td>Журнал действий агента</td></tr><tr><td><code>pchelper://statuses</code></td><td>Статический</td><td>Справочник статусов и разрешённых переходов</td></tr></tbody></table></div>
+<h5>Статические и шаблонные ресурсы</h5>
+<p>Протокол MCP разделяет ресурсы на два вида, и это важно понимать при проверке через Inspector:</p>
+<div class='table-wrap'><table><thead><tr><th>Вид</th><th>Сколько</th><th>Как запрашивается</th><th>Примеры</th></tr></thead><tbody><tr><td><strong>Статические</strong></td><td>5</td><td><code>resources/list</code></td><td><code>pchelper://compatibility/rules</code>, <code>pchelper://orders/recent</code>, <code>pchelper://policies/refund</code>, <code>pchelper://audit/recent</code>, <code>pchelper://statuses</code></td></tr><tr><td><strong>Шаблонные</strong></td><td>4</td><td><code>resources/templates/list</code>, затем чтение с подстановкой</td><td><code>pchelper://catalog/{component_type}</code>, <code>pchelper://users/{user_id}/orders</code>, <code>pchelper://users/{user_id}/cart</code>, <code>pchelper://users/{user_id}/builds</code></td></tr></tbody></table></div>
+<p>Итого <strong>9 ресурсов</strong>. Шаблонные содержат <code>{параметр}</code> и требуют конкретного значения при чтении, поэтому в общем списке они не отображаются.</p>
+<h5>Фактический ответ сервера (проверка через протокол)</h5>
+<p>Проверка выполнена прямым обращением к развёрнутому в Docker MCP-серверу (<code>http://localhost:8081/mcp</code>) по протоколу Streamable HTTP:</p>
+<pre><code>initialize  → сессия 25b68258ed6840f0be121507b83be2b0
+              serverInfo: {"name": "pchelper", "version": "1.30.0"}
+              capabilities: prompts, resources, tools
+
+tools/list → 13
+resources/list              → 5
+resources/templates/list    → 4
+prompts/list                → 5</code></pre>
+<p>Сервер в контейнере поднимается командой <code>python server.py --http --host 0.0.0.0 --port 8080</code> (в логах: <code>Uvicorn running on http://0.0.0.0:8080</code>).</p>
+<h5>Пример содержимого <code>pchelper://orders/recent</code></h5>
+<pre class="lang-json"><code>[
+  {
+    "id": 3,
+    "номер": "PCH-2026-000003",
+    "пользователь_id": 1,
+    "статус": "Отправлен",
+    "трек_номер": "BY-7744123",
+    "итоговая_сумма": 3610
+  },
+  {
+    "id": 2,
+    "номер": "PCH-2026-000002",
+    "пользователь_id": 2,
+    "статус": "В обработке",
+    "трек_номер": null,
+    "итоговая_сумма": 2888
+  }
+]</code></pre>
+<p>Именно из этого ресурса LLM берёт <code>tracking_number</code> для вызова инструмента <code>track_order</code> — это и требуется заданием.</p>
+<h3>Prompts — 5 шаблонов</h3>
+<div class='table-wrap'><table><thead><tr><th>Промпт</th><th>Аргументы</th><th>Содержание</th></tr></thead><tbody><tr><td><code>assemble_pc</code></td><td><code>budget: float</code>, <code>task: str</code></td><td>Пошаговый алгоритм подбора: правила → каталог → подбор → <code>check_compatibility</code> → исправление → <code>recommend_psu</code> → <code>check_stock</code> → отчёт</td></tr><tr><td><code>check_build</code></td><td>8 идентификаторов</td><td>Проверка сборки пользователя с пояснением каждой ошибки и предложением конкретной замены</td></tr><tr><td><code>order_refund</code></td><td><code>order_id: int</code></td><td><strong>Сначала</strong> читает <code>pchelper://policies/refund</code>, затем определяет статус, применяет правило и считает сумму</td></tr><tr><td><code>order_status_report</code></td><td><code>user_id: int</code></td><td>Читает <code>users/{id}/orders</code>, для заказов с трек-номером вызывает <code>track_order</code></td></tr><tr><td><code>manager_daily_digest</code></td><td>—</td><td>Сводка для менеджера: заказы в работе, заканчивающиеся остатки, заказы в пути</td></tr></tbody></table></div>
+<p>Промпт <code>order_refund</code> — прямая реализация требования методички: <em>«промпт, который заставляет LLM сначала прочитать правила возврата из ресурса, а потом посчитать сумму»</em>. Порядок задан явно в тексте шаблона и сопровождается запретом выдумывать суммы: «Не выдумывай суммы: используй только данные заказа из ресурса».</p>
+<h3>Валидация бизнес-правил</h3>
+<h5>Запрет отмены доставленного заказа</h5>
+<p><strong>Требование:</strong> <em>«Необходимо реализовать валидацию (агент не должен иметь возможности отменить уже доставленный заказ)».</em></p>
+<pre class="lang-python"><code>CANCELLABLE_STATUSES = ("Новый", "В обработке")
+
+def cancel_order(order_id: int, reason: str, user_id: int | None = None) -&gt; dict:
+    with get_conn() as conn:
+        order = _fetch_one(conn, 'SELECT * FROM "Заказы" WHERE id = ?', (order_id,))
+        if not order:
+            raise BusinessError(f"Заказ {order_id} не найден.")
+        if user_id is not None and order["пользователь_id"] != user_id:
+            raise BusinessError("Заказ принадлежит другому пользователю.")
+
+        current = order["статус"]
+        if current not in CANCELLABLE_STATUSES:
+            conn.execute(
+                'INSERT INTO "ЖурналДействийАгента" '
+                "(агент, инструмент, аргументы, результат, код_ответа, успешно) "
+                "VALUES (?, ?, ?, ?, ?, 0)",
+                ("mcp-server", "cancel_order", ...,
+                 f"Отказ: статус «{current}» не допускает отмены", 409))
+            conn.commit()
+            raise BusinessError(
+                f"Отмена невозможна: заказ {order['номер']} в статусе «{current}». "
+                f"Отменять можно только заказы в статусе «{CANCELLABLE_STATUSES}». "
+                f"После передачи в доставку возврат оформляется через службу поддержки.")</code></pre>
+<p>Ни один аргумент инструмента <code>cancel_order</code> не обходит ограничение: проверка происходит <strong>после</strong> чтения заказа из базы и <strong>до</strong> записи. Попытка отмены <strong>логируется как отказ</strong> (<code>успешно = 0</code>, <code>код_ответа = 409</code>), поэтому в журнале видно, если агент регулярно пытается отменить доставленные заказы.</p>
+<p>Три независимых уровня защиты перечислены в разделе 2.4.4 (справочник переходов) и продублированы в REST-API.</p>
+<h5>Строгая проверка <code>tracking_number</code></h5>
+<p><strong>Требование:</strong> <em>«Tool track_package должен требовать строгого указания tracking_number, которое LLM возьмёт из прочитанного ресурса».</em></p>
+<pre class="lang-python"><code>def track_order(order_id: int, tracking_number: str) -&gt; dict:
+    with get_conn() as conn:
+        order = _fetch_one(conn, 'SELECT * FROM "Заказы" WHERE id = ?', (order_id,))
+        if not order:
+            raise BusinessError(f"Заказ {order_id} не найден.")
+        if not order["трек_номер"]:
+            raise BusinessError(
+                f"Заказ {order['номер']} ещё не передан в доставку — "
+                f"трек-номен не присвоен. Текущий статус: «{order['статус']}».")
+        if not tracking_number or tracking_number.strip().upper() != order["трек_номер"].upper():
+            raise BusinessError(
+                f"Трек-номер не совпадает с данными заказа {order['номер']}. "
+                f"Прочитайте ресурс pchelper://orders/recent и используйте "
+                f"точное значение трек-номера из него.")
+    return {…}</code></pre>
+<div class='table-wrap'><table><thead><tr><th>Вход</th><th>Результат</th></tr></thead><tbody><tr><td>Точный трек-номер из ресурса</td><td>200, статус доставки</td></tr><tr><td>Другой трек-номер</td><td><code>isError</code> с указанием прочитать <code>pchelper://orders/recent</code></td></tr><tr><td>Пустая строка</td><td><code>isError</code></td></tr><tr><td>Заказ ещё не отправлен</td><td><code>isError</code>: «трек-номен не присвоен, текущий статус …»</td></tr></tbody></table></div>
+<h5>Валидация входных данных</h5>
+<div class='table-wrap'><table><thead><tr><th>Проверка</th><th>Место</th><th>Поведение при нарушении</th></tr></thead><tbody><tr><td>Тип компонента в перечне</td><td><code>services._component</code>, <code>search_components</code></td><td><code>BusinessError</code> со списком допустимых значений</td></tr><tr><td>Компонент существует</td><td><code>services._component</code></td><td><code>BusinessError</code> с указанием идентификатора и типа</td></tr><tr><td><code>minPrice ≤ maxPrice</code></td><td><code>search_components</code></td><td><code>BusinessError</code>: «minPrice не может превышать maxPrice»</td></tr><tr><td><code>quantity</code> в диапазоне 1…10</td><td><code>add_to_cart</code></td><td><code>BusinessError</code>: «Количество должно от 1 до 10»</td></tr><tr><td>Остаток на складе</td><td><code>add_to_cart</code>, <code>create_order</code></td><td><code>BusinessError</code>: «Доступно N шт., запрошено M»</td></tr><tr><td>Адрес при доставке курьером</td><td><code>create_order</code></td><td><code>BusinessError</code>: «требуется адрес»</td></tr><tr><td>Причина отмены непустая</td><td><code>cancel_order</code></td><td><code>BusinessError</code>: «Укажите причину отмены»</td></tr><tr><td>Заказ принадлежит пользователю</td><td><code>cancel_order</code>, <code>get_order</code></td><td><code>BusinessError</code>: «Заказ принадлежит другому пользователю»</td></tr><tr><td>Переход статуса разрешён</td><td><code>set_order_status</code></td><td><code>BusinessError</code> со списком допустимых переходов</td></tr></tbody></table></div>
+<h3>Аудит и маскирование персональных данных</h3>
+<p><strong>Требование:</strong> <em>«Особенность: работа с конфиденциальными данными (требование к логированию действий агента)».</em></p>
+<p>Каждый вызов инструмента и чтение ресурса оборачиваются контекстным менеджером <code>audit.audit()</code>:</p>
+<pre class="lang-python"><code>@mcp.tool()
+def cancel_order(order_id: int, reason: str, user_id: int | None = None) -&gt; dict:
+    with audit.audit(AGENT, "cancel_order",
+                     {"order_id": order_id, "reason": reason}) as ctx:
+        order = services.cancel_order(order_id, reason, user_id)
+        ctx["result"] = "Отменён"
+        return order</code></pre>
+<div class='table-wrap'><table><thead><tr><th>Поле журнала</th><th>Пример значения</th></tr></thead><tbody><tr><td><code>момент</code></td><td><code>2026-10-13 09:20:41</code></td></tr><tr><td><code>агент</code></td><td><code>claude-desktop</code></td></tr><tr><td><code>инструмент</code></td><td><code>cancel_order</code></td></tr><tr><td><code>аргументы</code> (JSON)</td><td><code>{"orderId": 3, "reason": "передумал"}</code> — <strong>PII замаскировано</strong></td></tr><tr><td><code>результат</code></td><td><code>Отменён</code> либо <code>Отказ: статус «Отправлен» не допускает отмены</code></td></tr><tr><td><code>код_ответа</code></td><td><code>200</code> / <code>409</code> / <code>400</code></td></tr><tr><td><code>успешно</code></td><td><code>1</code> / <code>0</code></td></tr><tr><td><code>длительность_мс</code></td><td><code>12</code></td></tr></tbody></table></div>
+<p><strong>Маскирование PII</strong> (<code>audit.mask_pii</code>) применяется перед записью:</p>
+<div class='table-wrap'><table><thead><tr><th>Поле</th><th>Исходное значение</th><th>В журнале</th></tr></thead><tbody><tr><td><code>phone</code></td><td><code>+375291112233</code></td><td><code>+375…33</code></td></tr><tr><td><code>email</code></td><td><code>anna@example.by</code></td><td><code>an***@example.by</code></td></tr><tr><td><code>address</code></td><td><code>ул. Ленина, 15, кв. 42</code></td><td><code>***</code></td></tr><tr><td><code>orderId</code></td><td><code>3</code></td><td><code>3</code> — не персональные данные, не меняются</td></tr></tbody></table></div>
+<p>Фактические записи журнала после прогона тестов:</p>
+<pre><code>AUDIT: {'инструмент': 'cancel_order', 'результат': 'Отменён', 'код_ответа': 200, 'успешно': 1}
+AUDIT: {'инструмент': 'cancel_order', 'результат': 'Отказ: статус «Доставлен» не допускает отмены', 'код_ответа': 409, 'успешно': 0}
+AUDIT: {'инструмент': 'cancel_order', 'результат': 'Отказ: статус «Отправлен» не допускает отмены', 'код_ответа': 409, 'успешно': 0}</code></pre>
+<p>Отказы зафиксированы отдельно и с кодом 409 — при разборе инцидента будет видно, что агент пытался совершить недопустимое действие.</p>
+<h3>Примеры запросов от лица пользователя</h3>
+<h5>Сценарий А — подбор ПК под бюджет</h5>
+<pre><code>Пользователь: Собери игровой ПК до 4000 BYN
+
+LLM → [prompts.assemble_pc(4000, "Игры")]
+LLM → [resources/read pchelper://compatibility/rules]
+LLM → [resources/read pchelper://catalog/cpu]
+LLM → [tools/call search_components(component_type="gpu", max_price=1500)]
+LLM → [tools/call check_compatibility(cpu_id=1, motherboard_id=1, ram_id=1,
+                                      cooling_id=1, gpu_id=1, storage_ids=[1],
+                                      psu_id=1, case_id=1)]
+
+LLM → Собрал: Ryzen 5 7500F + ASUS B650M-P + 16 ГБ DDR5-6000 +
+      DeepCool AK400 + Radeon RX 7700 XT + Kingston NV2 1 ТБ +
+      Pure Power 650W + DeepCool CH370.
+      Итого 2 391 BYN, запас бюджета 1 609 BYN.</code></pre>
+<h5>Сценарий Б — отслеживание заказа</h5>
+<pre><code>Пользователь: Где мой заказ?
+
+LLM → [resources/read pchelper://orders/recent]
+      → PCH-2026-000003, статус «Отправлен», tracking_number BY-7744123
+LLM → [tools/call track_order(order_id=3, tracking_number="BY-7744123")]
+
+LLM → Заказ PCH-2026-000003 в пути, трек-номер BY-7744123.</code></pre>
+<h5>Сценарий В — попытка отмены отправленного заказа</h5>
+<pre><code>Пользователь: Отмени заказ PCH-2026-000003
+
+LLM → [tools/call cancel_order(order_id=3, reason="передумал")]
+
+LLM → isError: Отмена невозможна: заказ PCH-2026-000003 в статусе
+      «Отправлен». Отменять можно только заказы в статусе «Новый»,
+      «В обработке». После передачи в доставку возврат оформляется
+      через службу поддержки.
+
+LLM → Отменить нельзя — заказ уже отправлен. Могу рассчитать возврат
+      по правилам (15 % комиссия) или оформить обращение в поддержку.</code></pre>
+<h5>Сценарий Г — расчёт возврата</h5>
+<pre><code>Пользователь: Сколько мне вернут за заказ 1042?
+
+LLM → [prompts.order_refund(1042)]
+LLM → [resources/read pchelper://policies/refund]      ← сначала правила
+LLM → [resources/read pchelper://orders/recent]
+
+LLM → Заказ PCH-2026-000003 в статусе «Отправлен».
+      По правилам возврата: комиссия 15 % от стоимости позиции.
+      Позиция «AMD Radeon RX 7700 XT» — 1 299 BYN.
+      Сумма возврата: 1 299 − 15 % = 1 104 BYN.</code></pre>
+</main>
+<footer>Лабораторная работа № 4 — PCHelper &middot; <a href="https://github.com/AlekseiNarkevich/pchelper-infra">репозиторий</a> &middot; <a href="https://pchelper-infra.onrender.com">развёрнутый сервис</a> &middot; <a href="https://sonarcloud.io/dashboard?id=AlekseiNarkevich_pchelper-infra">SonarCloud</a></footer>
+</body>
+</html>

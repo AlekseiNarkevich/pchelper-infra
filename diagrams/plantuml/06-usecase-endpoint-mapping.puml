@@ -1,0 +1,158 @@
+@startuml 06-usecase-endpoint-mapping
+
+' ============================================================================
+'  СОПОСТАВЛЕНИЕ ВАРИАНТОВ ИСПОЛЬЗОВАНИЯ С КОНЕЧНЫМИ ТОЧКАМИ (рис. 5)
+'  Лабораторная работа № 4, задание 3, пункт 2.
+'
+'  Назначение: показать цепочку прослеживаемости
+'      вариант использования (UC)  ->  HTTP-метод  ->  маршрут  ->  код ответа
+'  и тем самым доказать, что каждый прецедент покрыт хотя бы одной
+'  конечной точкой (требование задания 1, раздел 1.5 отчёта).
+'
+'  Диаграмма состоит из двух независимых блоков:
+'    * верхний — UC-01…UC-07 (гостевой контур);
+'    * нижний — UC-08…UC-21 (контур покупателя и менеджера).
+'
+'  Подробная таблица соответствия со всеми кодами ошибок — раздел 3.3.1.
+' ============================================================================
+title Сопоставление вариантов использования и конечных точек API (рис. 5)
+left to right direction
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam usecaseBackgroundColor #e8e8e8
+skinparam usecaseBorderColor #bdbdbd
+skinparam usecaseFontColor #212121
+skinparam package {
+  BackgroundColor #fafafa
+  BorderColor #bdbdbd
+  FontColor #0d47a1
+}
+skinparam ArrowColor #1976d2
+skinparam ArrowFontColor #0d47a1
+hide empty description
+
+' Блок 1: гостевой контур (UC-01…UC-07).
+rectangle "Варианты использования" #ffffff {
+  usecase "UC-01\nПросмотр\nкаталога" as UC01
+  usecase "UC-02\nФильтрация\nи поиск" as UC02
+  usecase "UC-03\nСборка ПК" as UC03
+  usecase "UC-04\nПроверка\nсовместимости" as UC04
+  usecase "UC-05\nРасчёт БП" as UC05
+  usecase "UC-06\nГотовые\nконфигурации" as UC06
+  usecase "UC-07\nДиагностика" as UC07
+}
+
+' Колонка 2: используемый HTTP-метод.
+' GET — чтение, POST — операция с телом запроса.
+rectangle "HTTP-метод" #ffffff {
+  [GET] as M_GET
+  [GET] as M_GET2
+  [POST] as M_POST
+  [POST] as M_POST2
+  [POST] as M_POST3
+}
+
+' Колонка 3: конкретный маршрут вместе с путями-параметрами.
+rectangle "Маршрут" #ffffff {
+  [/catalog/components] as R1
+  [/catalog/filters] as R2
+  [/configurator/steps] as R3
+  [/configurator/validate] as R4
+  [/configurator/psu/recommend] as R5
+  [/catalog/prebuilt] as R6
+  [/support/troubleshooting/{id}] as R7
+}
+
+' Колонка 4: основные коды ответа. Полный набор (401, 403, 409, 422)
+' для каждой операции приведён в api/openapi.yaml.
+rectangle "Статусы ответа" #ffffff {
+  [200 OK] as S200
+  [404 Not Found] as S404
+  [422 Unprocessable] as S422
+  [201 Created] as S201
+  [400 Bad Request] as S400
+}
+
+' Блок 2: контуры покупателя и менеджера (UC-08…UC-21).
+' Все эти маршруты требуют заголовок Authorization: Bearer <token>.
+rectangle "Учётные данные и заказы" #ffffff {
+  usecase "UC-08/09\nРегистрация,\nвход" as UC08
+  usecase "UC-10\nКорзина" as UC10
+  usecase "UC-11\nОформление\nзаказа" as UC11
+  usecase "UC-12\nИстория\nзаказов" as UC12
+  usecase "UC-13\nОтмена\nзаказа" as UC13
+  usecase "UC-14\nСборки" as UC14
+  usecase "UC-17/18\nЗаказы\nменеджера" as UC17
+  usecase "UC-20/21\nТовары,\nаналитика" as UC20
+}
+
+' Колонка «Конечные точки»: маршруты, сгруппированные по операциям.
+rectangle "Конечные точки" #ffffff {
+  [POST /auth/register\nPOST /auth/login\nPOST /auth/refresh\nGET /auth/me] as A1
+  [GET /cart\nPOST /cart/items\nPATCH /cart/items/{id}\nDELETE /cart/items/{id}] as A2
+  [POST /orders] as A3
+  [GET /orders\nGET /orders/{id}] as A4
+  [POST /orders/{id}/cancel] as A5
+  [GET /builds\nPOST /builds\nPUT /builds/{id}\nDELETE /builds/{id}] as A6
+  [GET /admin/orders\nPATCH /admin/orders/{id}/status] as A7
+  [PATCH /admin/stock/{id}\nGET /admin/analytics/sales] as A8
+}
+
+' Колонка «Ответ»: ожидаемые коды и краткие тела ответов.
+rectangle "Ответ" #ffffff {
+  [201 / 200 / 401 / 409] as B1
+  [200 / 201 / 204 / 422] as B2
+  [201 Order / 422 Incompatible] as B3
+  [200 Page<Order>] as B4
+  [200 Order / 409 StatusConflict] as B5
+  [200 / 201 / 204 / 404] as B6
+  [200 / 409 InvalidTransition] as B7
+  [200 Stock / 200 Analytics] as B8
+}
+
+' Цепочки прослеживаемости. Стрелки разбиты на отдельные линии,
+' потому что PlantUML не допускает цепочки вида «A --> B --> C»
+' в диаграммах компонентов и развёртывания.
+' Цепочки прослеживаемости. Каждая стрелка разбита на отдельную
+' линию: PlantUML не допускает цепочки «A --> B --> C» в
+' диаграммах компонентов и развёртывания (проверено на 1.2024.7).
+UC01 --> M_GET
+M_GET --> R1
+R1 --> S200
+UC02 --> M_GET2
+M_GET2 --> R2
+R2 --> S404
+UC03 --> M_POST2
+M_POST2 --> R3
+R3 --> S422
+UC04 --> M_POST3
+M_POST3 --> R4
+R4 --> S422
+UC05 --> M_POST
+M_POST --> R5
+R5 --> S400
+UC06 --> M_GET
+M_GET --> R6
+R6 --> S404
+UC07 --> M_GET
+M_GET --> R7
+R7 --> S404
+
+UC08 --> A1
+A1 --> B1
+UC10 --> A2
+A2 --> B2
+UC11 --> A3
+A3 --> B3
+UC12 --> A4
+A4 --> B4
+UC13 --> A5
+A5 --> B5
+UC14 --> A6
+A6 --> B6
+UC17 --> A7
+A7 --> B7
+UC20 --> A8
+A8 --> B8
+@enduml

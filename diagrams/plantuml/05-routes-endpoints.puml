@@ -1,0 +1,164 @@
+@startuml 05-routes-endpoints
+
+' ============================================================================
+'  КАРТА МАРШРУТОВ И КОНЕЧНЫХ ТОЧЕК API (соответствует рис. 4 методички)
+'  Лабораторная работа № 4, задание 3, пункт 1.
+'
+'  Назначение: показать всё пространство URL сервиса, сгруппированное
+'  по ресурсам, и используемые HTTP-методы.
+'
+'  Соглашения по именованию (подробно — раздел 3.1 отчёта):
+'    * версия в префиксе пути: /api/v1;
+'    * имена ресурсов во множественном числе строчными буквами;
+'    * GET    — чтение без изменения состояния;
+'    * POST   — создание ресурса либо действие-глагол (/orders/{id}/cancel);
+'    * PATCH  — частичное обновление, PUT — полная замена;
+'    * DELETE — удаление, всегда с кодом ответа 204.
+'
+'  Админ-группа дополнительно помечена жёлтым: доступна только роли manager.
+' ============================================================================
+title Проектирование маршрутов и конечных точек API (рис. 4)
+left to right direction
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam ArrowColor #1976d2
+skinparam package {
+  BackgroundColor #fafafa
+  BorderColor #bdbdbd
+  FontColor #0d47a1
+  FontStyle bold
+}
+
+actor "Клиент\n(React Web / Mobile)" as client
+
+rectangle "api.pchelper.by/api/v1" #ffffff {
+
+  ' Служебные маршруты: используются healthcheck'ом Docker,
+  ' мониторингом и CI-конвейером.
+  package "Служебные" #fafafa {
+    [GET /health] as e01
+  }
+
+  ' Регистрация, вход и обновление access-токена (UC-08, UC-09).
+  package "Аутентификация — /auth" #fafafa {
+    [POST /auth/register] as e02
+    [POST /auth/login] as e03
+    [POST /auth/refresh] as e04
+    [GET  /auth/me] as e05
+  }
+
+  ' Чтение каталога и готовых конфигураций. Доступен гостю,
+  ' поэтому внешние маршруты открыты без токена.
+  package "Каталог — /catalog" #fafafa {
+    [GET /catalog/components] as e06
+    [GET /catalog/components/{id}] as e07
+    [GET /catalog/filters] as e08
+    [GET /catalog/prebuilt] as e09
+    [GET /catalog/prebuilt/{id}] as e10
+    [GET /catalog/components/{id}/reviews] as e11
+  }
+
+  ' Сборка ПК и серверная проверка совместимости по 8 правилам.
+  package "Конфигуратор — /configurator" #fafafa {
+    [GET  /configurator/steps] as e12
+    [POST /configurator/validate] as e13
+    [POST /configurator/psu/recommend] as e14
+    [GET  /support/troubleshooting/{id}] as e15
+  }
+
+  ' Сохранённые сборки покупателя (было только в localStorage).
+  package "Аккаунт — /builds" #fafafa {
+    [GET    /builds] as e16
+    [POST   /builds] as e17
+    [GET    /builds/{id}] as e18
+    [PUT    /builds/{id}] as e19
+    [DELETE /builds/{id}] as e20
+  }
+
+  ' Корзина покупателя, включая слияние локальной корзины после входа.
+  package "Корзина — /cart" #fafafa {
+    [GET    /cart] as e21
+    [POST   /cart/items] as e22
+    [PATCH  /cart/items/{id}] as e23
+    [DELETE /cart/items/{id}] as e24
+    [POST   /cart/merge] as e25
+  }
+
+  ' Оформление и сопровождение заказа (UC-11…UC-15).
+  package "Заказы — /orders" #fafafa {
+    [POST /orders] as e26
+    [GET  /orders] as e27
+    [GET  /orders/{id}] as e28
+    [POST /orders/{id}/cancel] as e29
+    [GET  /orders/{id}/tracking] as e30
+    [POST /catalog/components/{id}/reviews] as e31
+  }
+
+  ' Админ-маршруты. Требование FR-08: доступны только после
+  ' проверки роли middleware requireRole; иначе — 403 Forbidden.
+  package "Админ — /admin (роль manager)" #fff8e1 {
+    [GET    /admin/orders] as e32
+    [PATCH  /admin/orders/{id}/status] as e33
+    [POST   /admin/orders/{id}/comments] as e34
+    [POST   /admin/components] as e35
+    [PATCH  /admin/components/{id}] as e36
+    [DELETE /admin/components/{id}] as e37
+    [PATCH  /admin/stock/{id}] as e38
+    [GET    /admin/analytics/sales] as e39
+  }
+}
+
+' Связи «клиент -> конечная точка»: каждая точка достижима
+' клиентом соответствующим HTTP-методом.
+client --> e01
+client --> e02
+client --> e03
+client --> e04
+client --> e05
+client --> e06
+client --> e07
+client --> e08
+client --> e09
+client --> e10
+client --> e11
+client --> e12
+client --> e13
+client --> e14
+client --> e15
+client --> e16
+client --> e17
+client --> e18
+client --> e19
+client --> e20
+client --> e21
+client --> e22
+client --> e23
+client --> e24
+client --> e25
+client --> e26
+client --> e27
+client --> e28
+client --> e29
+client --> e30
+client --> e31
+client --> e32
+client --> e33
+client --> e34
+client --> e35
+client --> e36
+client --> e37
+client --> e38
+client --> e39
+
+' Требования задания 4, пункт 4: для каждого POST и PUT обязательно
+' указываются тело запроса (requestBody + schema) и смысл всех
+' используемых кодов ответа. Полный перечень — в openapi.yaml.
+note bottom of e13
+  POST / PUT: тело запроса
+  задаётся в OpenAPI
+  (requestBody + schema)
+  Ответы: 200 / 201 / 400 /
+  401 / 403 / 404 / 409 / 422
+end note
+@enduml

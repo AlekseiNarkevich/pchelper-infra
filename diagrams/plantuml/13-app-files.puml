@@ -1,0 +1,176 @@
+@startuml 13-app-files
+
+' ============================================================================
+'  ДИАГРАММА ФАЙЛОВ ПРИЛОЖЕНИЯ PCHelper
+'  Лабораторная работа № 4, задание 6, пункт 5
+'  и обязательный раздел вики «Диаграмма файлов приложения».
+'
+'  Назначение: показать, из каких файлов состоит проект и как они
+'  зависят друг от друга. Стрелки читаются так:
+'  «A --> B» означает «модуль A импортирует (или вызывает) модуль B».
+'
+'  Структура:
+'    корень          — файлы конфигурации всего проекта;
+'    backend/        — Node.js 20 + Express, слои routes/controllers/services;
+'    frontend/       — React 18 + Vite, раздаётся через nginx;
+'    mcp-server/     — Python 3.12 + MCP Python SDK;
+'    db/             — DDL-скрипты схемы данных;
+'    .github/        — конвейер CI и шаблоны issue/PR;
+'    docs/           — страницы вики и сайта GitHub Pages.
+' ============================================================================
+title Диаграмма файлов приложения PCHHelper
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #fafafa
+  BorderColor #bdbdbd
+  FontColor #0d47a1
+}
+skinparam componentStyle rectangle
+skinparam component {
+  BackgroundColor #ffffff
+  BorderColor #bdbdbd
+  FontColor #212121
+}
+skinparam ArrowColor #1976d2
+
+' Корень: общие для всех модулей файлы конфигурации.
+package "pchelper/\nкорень проекта" #fafafa {
+  component "docker-compose.yml" as f0
+  component ".env.example" as f0b
+  component "README.md" as f0c
+  component "sonar-project.properties" as f0d
+  component "package.json\n(workspace)" as f0e
+}
+
+' BACKEND: единственный источник истины для бизнес-правил.
+' Слои идут строго сверху вниз, зависимости не пересекаются.
+package "backend/ — Node.js 20 + Express" #ffffff {
+  component "server.js\nточка входа, монтирование\nроутов, Swagger UI /docs" as b1
+  component "app.js\nконфигурация Express,\nCORS, helmet, rate-limit" as b2
+  component "middleware/\nrequireAuth.js · requireRole.js\nerrorHandler.js · validate.js" as b3
+  component "routes/\nauth · catalog · configurator ·\ncart · orders · builds · admin" as b4
+  component "controllers/ *(7)" as b5
+  component "services/\nauth · catalog · compatibility ·\npsuCalculator · cart · order ·\nstock · notification · agentAudit" as b6
+  component "repositories/\n*.repository.js\n(единственная точка доступа к БД)" as b7
+  component "services/supabase.service.js\nTABLES: Процессоры, ОЗУ, …" as b8
+  component "tests/\nunit/*.test.js\nintegration/*.test.js" as b9
+  component "openapi.yaml\nспецификация API" as b10
+  component "Dockerfile\n(многостадийная сборка)" as b11
+}
+
+' FRONTEND: SPA. Единая точка общения с сервером —
+' src/services/api.js; состояние — src/store (persist).
+package "frontend/ — React 18 + Vite 6" #ffffff {
+  component "src/main.jsx\nsrc/App.jsx\nrouter: / · /catalog · /builder ·\n/cart · /orders · /account · /admin" as f1
+  component "src/pages/\nHome · Catalog · Product ·\nBuilder · Cart · Checkout ·\nOrders · Account · Admin" as f2
+  component "src/components/\nHeader · ProductCard ·\nConfiguratorStep · BuildSummary ·\nCompatibilityAlert · OrderTable" as f3
+  component "src/services/api.js\nединый HTTP-клиент,\nтокены, обработка ошибок" as f4
+  component "src/store/\nauth · cart · build\n(Zustand + persist)" as f5
+  component "src/utils/\ncompatibility.js · format.js" as f6
+  component "src/styles/\ntheme.css — #1976d2, #e8e8e8,\n#ffe082, #bdbdbd" as f7
+  component "nginx.conf\nSPA-fallback + proxy /api" as f8
+  component "Dockerfile\nbuild → nginx:alpine" as f9
+}
+
+' MCP-СЕРВЕР: задание 5. Читает ту же схему данных,
+' что и backend, но через собственный слой доступа.
+package "mcp-server/ — Python 3.12 + MCP SDK" #ffffff {
+  component "server.py\nFastMCP: регистрация\nTools / Resources / Prompts" as m1
+  component "tools.py\n13 инструментов\n(JSON Schema входных данных)" as m2
+  component "resources.py\n9 ресурсов pchelper://" as m3
+  component "prompts.py\n5 шаблонов промптов" as m4
+  component "services/\ncompatibility.py · orders.py ·\npricing.py · stock.py" as m5
+  component "audit.py\nжурнал действий агента\n+ маскирование PII" as m6
+  component "db/schema.sql\ndb/seed.sql\n(SQLite — MVP)" as m7
+  component "tests/\npytest" as m8
+  component "README.md\nразвёртывание и примеры запросов" as m9
+  component "Dockerfile" as m10
+}
+
+' DDL-СКРИПТЫ: единственный источник правды о схеме базы.
+' Порядок применения: 01 -> 02 -> 03 -> 04 -> 05.
+package "db/ — схема данных" #ffffff {
+  component "01_schema.sql\nCREATE EXTENSION, ENUM-типы,\nтаблицы каталога" as d1
+  component "02_marketplace.sql\nПользователи · Корзины ·\nЗаказы · Сборки · Отзывы" as d2
+  component "03_indexes_constraints.sql\nиндексы, CHECK, триггеры,\nпереходы статусов заказа" as d3
+  component "04_views.sql\nv_каталог, v_готовые_конфигурации,\nv_остатки" as d4
+  component "05_seed.sql\nдемонстрационные данные" as d5
+}
+
+' АВТОМАТИЗАЦИЯ И ШАБЛОНЫ РАБОТЫ.
+package ".github/" #fafafa {
+  component "workflows/ci.yml\nlint → test → sonar → build → deploy" as g1
+  component "workflows/pages.yml\nсборка GitHub Pages" as g2
+  component "ISSUE_TEMPLATE/\nTASK.md · BUG.md" as g3
+  component "PULL_REQUEST_TEMPLATE.md\nчек-лист ревью" as g4
+}
+
+' ДОКУМЕНТАЦИЯ: страницы сайта, вики, отчёты по лабораторным.
+package "docs/ — документация проекта" #fafafa {
+  component "index.md (Pages)\nrequirements.md · db.md ·\napi.md · mcp.md · infra.md" as h1
+  component "wiki/\nHome · Функциональные требования ·\nДиаграмма файлов · Схема БД · API" as h2
+  component "diagrams/\n*.puml · *.png" as h3
+  component "labs/\nЛР1 … ЛР4 (отчёты)" as h4
+}
+
+' Зависимости корневого package.json на модули монорепозитория.
+f0e --> b1
+f0e --> f1
+f0e --> m1
+f0 --> b11
+f0 --> f9
+f0 --> m10
+' Внутри backend: server.js создаёт приложение, app.js его
+' настраивает, дальше подключаются middleware и маршруты.
+b1 --> b2
+b2 --> b3
+b3 --> b4
+b4 --> b5
+b5 --> b6
+b6 --> b7
+b7 --> b8
+b6 --> b9
+b2 --> b10
+
+f1 --> f2
+f2 --> f3
+f2 --> f4
+f2 --> f5
+f3 --> f6
+f4 --> f7
+f9 --> f8
+' nginx отдаёт статику и проксирует /api на контейнер backend
+' по внутренней сети Docker Compose.
+f8 --> b1
+
+' Внутри MCP-сервера: server.py только РЕГИСТРИРУЕТ примитивы,
+' а вся логика лежит в services.py (её и покрывают тесты).
+m1 --> m2
+m1 --> m3
+m1 --> m4
+m2 --> m5
+m3 --> m5
+m4 --> m5
+m5 --> m6
+m5 --> m7
+m5 --> m8
+m1 --> m9
+
+' Репозитории backend и сервисы MCP обращаются к одним и тем же
+' DDL-файлам — расхождение схемы и кода исключено.
+b7 ..> d1 : SQL-схема
+b7 ..> d3 : индексы и триггеры
+b7 ..> d4 : представления
+m5 ..> m7 : SQLite-схема MVP
+
+g1 --> b9
+g1 --> f9
+g1 --> m8
+g1 --> g2
+h1 --> h3
+h1 --> h2
+h1 --> h4
+f0c --> h1
+@enduml

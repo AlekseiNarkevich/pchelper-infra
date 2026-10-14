@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PCHelper — PCHelper</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><div class="wrap">
+  <h1>PCHelper</h1>
+  <p>Интернет-магазин компьютерных комплектующих и готовых ПК с конфигуратором сборки и агентным доступом по протоколу MCP</p>
+</div></header>
+<nav><div class="wrap"><a href="index.html" class="on">Главная</a><a href="requirements.html">Функциональные требования</a><a href="files.html">Файлы приложения</a><a href="db.html">Схема базы данных</a><a href="api.html">API-проекта</a><a href="mcp.html">MCP-сервер</a><a href="spec.html">Доп. спецификация</a><a href="infra.html">Инфраструктура и CI/CD</a><a href="labs.html">Лабораторные работы</a><a href="presentation.html">Презентация</a></div></nav>
+<main class="wrap">
+
+<div class="grid">
+  <div class="card"><h3>Спецификация API</h3>
+    <p><span class="badge ok">39 операций</span>
+       <span class="badge">OpenAPI 3.0.3</span>
+       <span class="badge">7 тегов</span></p>
+    <p>Тела POST и PUT, статусы ответов, схемы — проверены линтером
+       и сборкой в CI.</p></div>
+  <div class="card"><h3>База данных</h3>
+    <p><span class="badge ok">22 таблицы</span>
+       <span class="badge">72 индекса</span>
+       <span class="badge">4 триггера</span></p>
+    <p>PostgreSQL 15, 7 перечислений, функция проверки совместимости,
+       14 автоматических проверок.</p></div>
+  <div class="card"><h3>MCP-сервер</h3>
+    <p><span class="badge ok">13 Tools</span>
+       <span class="badge">9 Resources</span>
+       <span class="badge">5 Prompts</span></p>
+    <p>39 тестов проходят. Валидация запрещает отмену
+       доставленного заказа.</p></div>
+  <div class="card"><h3>Инфраструктура</h3>
+    <p><span class="badge ok">6 этапов CI/CD</span>
+       <span class="badge">Quality Gate</span>
+       <span class="badge">Render</span></p>
+    <p>Конвейер зелёный, образы публикуются в GHCR,
+       сервис развёрнут и отвечает.</p></div>
+</div>
+
+<h2>Что реализовано</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Задание</th><th>Результат</th><th>Где смотреть</th></tr></thead>
+<tbody>
+<tr><td>1. Модель требований</td>
+    <td>16 функциональных и 10 нефункциональных требований,
+        17 User Story, 25 вариантов использования</td>
+    <td><a href="requirements.html">Функциональные требования</a></td></tr>
+<tr><td>2. Модель базы данных</td>
+    <td>Логическая схема, физическая ERD, 6 SQL-файлов</td>
+    <td><a href="db.html">Схема базы данных</a></td></tr>
+<tr><td>3. Маршруты и конечные точки</td>
+    <td>Карта маршрутов, сопоставление с вариантами использования</td>
+    <td><a href="api.html">API-проекта</a></td></tr>
+<tr><td>4. Проектирование и тестирование API</td>
+    <td>Спецификация OpenAPI 3.0.3, 39 тест-кейсов на mock-сервере</td>
+    <td><a href="api.html">API-проекта</a></td></tr>
+<tr><td>5. MCP-сервер</td>
+    <td>13 инструментов, 9 ресурсов, 5 шаблонов промптов, 39 тестов</td>
+    <td><a href="mcp.html">MCP-сервер</a></td></tr>
+<tr><td>6. Инфраструктура</td>
+    <td>Docker Compose из 5 контейнеров, CI/CD, SonarQube, Render</td>
+    <td><a href="infra.html">Инфраструктура и CI/CD</a></td></tr>
+</tbody></table></div>
+
+<h2>Разделы документации</h2>
+<div class="grid"><div class="card"><h3><a href="requirements.html">Функциональные требования</a></h3><p>Требования, User Story и 25 вариантов использования с покрытием API.</p></div><div class="card"><h3><a href="files.html">Файлы приложения</a></h3><p>Структура проекта и назначение каждого модуля.</p></div><div class="card"><h3><a href="db.html">Схема базы данных</a></h3><p>Логическая схема, физическая ERD и SQL-файлы.</p></div><div class="card"><h3><a href="api.html">API-проекта</a></h3><p>39 операций OpenAPI, тела запросов, статусы и тест-кейсы.</p></div><div class="card"><h3><a href="mcp.html">MCP-сервер</a></h3><p>Инструменты, ресурсы и шаблоны промптов для ИИ-агента.</p></div><div class="card"><h3><a href="spec.html">Доп. спецификация</a></h3><p>Ограничения, требования к безопасности и надёжности.</p></div><div class="card"><h3><a href="infra.html">Инфраструктура и CI/CD</a></h3><p>Docker, конвейер CI/CD, SonarQube и развёртывание.</p></div><div class="card"><h3><a href="labs.html">Лабораторные работы</a></h3><p>Отчёты по лабораторным работам курса.</p></div><div class="card"><h3><a href="presentation.html">Презентация</a></h3><p>Материалы презентации проекта.</p></div></div>
+
+<h2>Ссылки</h2>
+<div class="table-wrap"><table>
+<thead><tr><th>Ресурс</th><th>Адрес</th></tr></thead>
+<tbody>
+<tr><td>Репозиторий</td>
+    <td><a href="https://github.com/AlekseiNarkevich/pchelper-infra">github.com/AlekseiNarkevich/pchelper-infra</a></td></tr>
+<tr><td>Развёрнутый backend</td>
+    <td><a href="https://pchelper-infra.onrender.com">pchelper-infra.onrender.com</a></td></tr>
+<tr><td>Проверка качества кода</td>
+    <td><a href="https://sonarcloud.io/dashboard?id=AlekseiNarkevich_pchelper-infra">SonarCloud</a></td></tr>
+<tr><td>Образы контейнеров</td>
+    <td><code>ghcr.io/alekseinarkevich/pchelper-infra/api</code>,
+        <code>.../web</code></td></tr>
+</tbody></table></div>
+
+</main>
+<footer>Лабораторная работа № 4 — PCHelper &middot; <a href="https://github.com/AlekseiNarkevich/pchelper-infra">репозиторий</a> &middot; <a href="https://pchelper-infra.onrender.com">развёрнутый сервис</a> &middot; <a href="https://sonarcloud.io/dashboard?id=AlekseiNarkevich_pchelper-infra">SonarCloud</a></footer>
+</body>
+</html>
