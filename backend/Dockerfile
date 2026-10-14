@@ -72,11 +72,14 @@ USER pchelper
 # Порт, который приложение слушает ВНУТРИ контейнера
 EXPOSE 3001
 
-# Проверка живости: каждые 30 секунд опрашиваем /api/v1/health.
-# Пока healthcheck не пройден, docker-compose не считает сервис готовым
-# и не запускает зависящие от него контейнеры.
-HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=5 \
-    CMD wget -qO- http://127.0.0.1:3001/api/v1/health || exit 1
+# Проверка живости: опрашиваем /api/v1/health каждые 30 секунд.
+# Порт берётся из переменной окружения, а не зашивается:
+# локально это 3001, а Render назначает контейнеру случайный порт
+# и передаёт его через PORT. С жёстко зашитым 3001 проверка
+# ходила бы в пустоту и помечала контейнер как unhealthy.
+# Форма команды — через shell (/bin/sh), чтобы ${PORT} подставился.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD wget -qO- "http://127.0.0.1:${PORT:-3001}/api/v1/health" || exit 1
 
 # tini обязателен первой в ENTRYPOINT
 ENTRYPOINT ["/sbin/tini", "--"]
