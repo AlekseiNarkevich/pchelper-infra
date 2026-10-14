@@ -64,13 +64,23 @@ PSU_HEADROOM = 1.25
 
 
 def init_db(reset: bool = False) -> Path:
-    """Создаёт схему и наполняет БД демонстрационными данными."""
+    """Создаёт схему и наполняет БД демонстрационными данными.
+
+    Схема и данные берутся из файлов `schema.sql` и `seed.sql`,
+    которые лежат рядом с сервером и попадают в образ через
+    инструкцию COPY в Dockerfile. Пользовательский ввод сюда не
+    попадает: ни один инструмент MCP не принимает SQL.
+    """
     if reset and DB_PATH.exists():
         DB_PATH.unlink()
     conn = sqlite3.connect(DB_PATH)
     try:
-        conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))
-        conn.executescript(SEED_PATH.read_text(encoding="utf-8"))
+        # executescript выполняет целый файл, параметризация в нём
+        # невозможна по назначению метода. SonarCloud помечает вызов
+        # как SQL-инъекцию (pythonsecurity:S3649), но источник данных
+        # — доверенный файл из образа, а не пользовательский ввод.
+        conn.executescript(SCHEMA_PATH.read_text(encoding="utf-8"))  # NOSONAR
+        conn.executescript(SEED_PATH.read_text(encoding="utf-8"))  # NOSONAR
         conn.commit()
     finally:
         conn.close()
