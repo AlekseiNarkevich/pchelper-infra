@@ -1,0 +1,251 @@
+@startuml 14-mcp-schema
+
+' ============================================================================
+'  JSON-СХЕМЫ ПРИМИТИВОВ MCP-СЕРВЕРА PCHelper
+'  Лабораторная работа № 4, задание 5, пункт 3
+'  («спроектировать JSON-схемы для MCP Tools»).
+'
+'  Откуда берутся схемы: JSON Schema генерируется MCP Python SDK
+'  автоматически из типизированных сигнатур функций в mcp/server.py.
+'  Отдельного файла со схемами нет, поэтому описание не может
+'  разойтись с реальным поведением инструмента.
+'
+'  Соответствие типов Python и JSON Schema:
+'    Literal[...]                  -> enum (закрытое множество значений);
+'    int, int | None               -> integer / nullable;
+'    list[int] | None              -> array of integer;
+'    float                         -> number;
+'  Границы диапазонов проверяются в сервисном слое services.py.
+'
+'  Карточки в пакете «Tools» показывают: сверху — вход, снизу — выход.
+' ============================================================================
+title JSON-схемы примитивов MCP-сервера PCHelper
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam class {
+  BackgroundColor #e8e8e8
+  BorderColor #bdbdbd
+  ArrowColor #1976d2
+  FontColor #212121
+}
+skinparam package {
+  BackgroundColor #fafafa
+  BorderColor #bdbdbd
+  FontColor #0d47a1
+}
+
+' Справочный перечислитель типов компонентов каталога.
+' Соответствует типу component_type в PostgreSQL (db/01_schema.sql).
+class ComponentType {
+  + cpu | motherboard | ram |\n  cooling | gpu | storage |\n  psu | case
+}
+
+' Ссылка на компонент. Тип обязателен, потому что идентификаторы
+' в восьми таблицах каталога независимы друг от друга.
+class ComponentRef {
+  + component_type : enum <<required>>
+  + component_id : integer <<required, min 1>>
+}
+
+' 14 ИНСТРУМЕНТОВ. Карточка: сверху — входные параметры,
+' снизу — выходные поля. Стрелки между карточками показывают,
+' какой инструмент вызывает какой.
+package "Tools — действия агента" #fafafa {
+
+  class "search_components" as T1 {
+    + input
+    --
+    component_type : enum?
+    brand : string?
+    min_price : number?
+    max_price : number?
+    sort : enum(price_asc, price_desc, rating)
+    limit : integer = 20 (1…100)
+    --
+    output : Component[]
+  }
+
+  class "check_compatibility" as T2 {
+    + input
+    --
+    cpu_id : integer <<required>>
+    motherboard_id : integer <<required>>
+    ram_id : integer <<required>>
+    cooling_id : integer <<required>>
+    gpu_id : integer?
+    storage_ids : integer[] = []
+    psu_id : integer?
+    case_id : integer?
+    --
+    output
+    compatible : boolean
+    errors : CompatibilityIssue[]
+    warnings : CompatibilityIssue[]
+  }
+
+  class "recommend_psu" as T3 {
+    + input
+    --
+    cpu_id : integer <<required>>
+    gpu_id : integer?
+    headroom : number = 1.25
+    --
+    output
+    recommended_watts : integer
+    alternatives : Component[]
+  }
+
+  class "add_to_cart" as T4 {
+    + input
+    --
+    user_id : integer <<required>>
+    component : ComponentRef <<required>>
+    quantity : integer = 1 (1…10)
+    --
+    output : Cart
+  }
+
+  class "create_order" as T5 {
+    + input
+    --
+    user_id : integer <<required>>
+    delivery : {address, phone,\nmethod: courier|pickup} <<required>>
+    payment_method : enum(card, cash, installment)
+    promo_code : string? (pattern ^[A-Z0-9-]{4,30}$)
+    --
+    output : Order
+  }
+
+  class "cancel_order" as T6 {
+    + input
+    --
+    order_id : integer <<required>>
+    reason : string (1…500)
+    --
+    Бизнес-правило
+    допустимо только для
+    «Новый» и «В обработке»
+    иначе isError = true
+  }
+
+  class "track_order" as T7 {
+    + input
+    --
+    order_id : integer <<required>>
+    tracking_number : string <<required>>\n(строгое значение из\nресурса orders://recent)
+    --
+    output : {status, eta, carrier}
+  }
+
+  class "set_order_status" as T8 {
+    + input
+    --
+    order_id : integer <<required>>
+    status : enum(Новый, В обработке,\n Собран, Отправлен, Доставлен)
+    comment : string?
+    --
+    Роль: manager
+  }
+
+  class "check_stock" as T9 {
+    + input
+    --
+    component_type : enum?
+    component_id : integer?
+    only_low : boolean = false
+    --
+    output : StockLevel[]
+  }
+}
+
+' 9 РЕСУРСОВ — данные, доступные агенту ТОЛЬКО ДЛЯ ЧТЕНИЯ.
+' Стрелка «R -> T» означает: ресурс нужно прочитать,
+' чтобы корректно вызвать инструмент T.
+package "Resources — читаемые данные" #fff8e1 {
+  class "pchelper://catalog/{type}" as R1 {
+    mimeType : application/json
+    динамический: выборка по типу
+  }
+  class "pchelper://catalog/prebuilt" as R2 {
+    mimeType : application/json
+    готовые конфигурации + цена
+  }
+  class "pchelper://compatibility/rules" as R3 {
+    mimeType : text/markdown
+    8 правил совместимости
+  }
+  class "pchelper://orders/recent" as R4 {
+    mimeType : application/json
+    последние заказы + tracking_number
+  }
+  class "pchelper://users/{user_id}/orders" as R5 {
+    mimeType : application/json
+    история заказов пользователя
+  }
+  class "pchelper://users/{user_id}/builds" as R6 {
+    mimeType : application/json
+    сохранённые сборки
+  }
+  class "pchelper://users/{user_id}/cart" as R7 {
+    mimeType : application/json
+    корзина пользователя
+  }
+  class "pchelper://policies/refund" as R8 {
+    mimeType : text/markdown
+    правила возврата и промокоды
+  }
+  class "pchelper://audit/recent" as R9 {
+    mimeType : application/json
+    журнал действий агента
+  }
+}
+
+' 5 ШАБЛОНОВ ПРОМПТОВ. Каждый задаёт пошаговый сценарий,
+' в котором явно указано, ЧТО читать и в каком порядке вызывать.
+package "Prompts — шаблоны сценариев" #fff8e1 {
+  class "assemble_pc" as P1 {
+    arguments : budget (number),\ntask (string)
+    читает catalog → вызывает\nsearch_components, check_compatibility
+  }
+  class "check_build" as P2 {
+    arguments : build_url | ids
+    читает compatibility/rules
+  }
+  class "order_refund" as P3 {
+    arguments : order_id (integer)
+    СНАЧАЛА читает policies/refund,\nПОТОМ считает сумму
+  }
+  class "order_status_report" as P4 {
+    arguments : user_id (integer)
+    читает users/{id}/orders
+  }
+  class "manager_daily_digest" as P5 {
+    arguments : date (string?)
+    читает orders/recent, catalog\n+ вызывает check_stock
+  }
+}
+
+' Использование типов внутри самих схем.
+ComponentType ..> ComponentRef
+ComponentType ..> T1
+ComponentRef ..> T4
+
+' Цепочки «сначала прочитай ресурс, потом вызови инструмент».
+' Это основной приём против галлюцинаций LLM, требуемый заданием 5.
+R1 ..> T1 : чтение каталога
+R3 ..> T2 : правила проверки
+R4 ..> T7 : tracking_number
+R8 ..> P3 : правила возврата
+R5 ..> P4
+R4 ..> P5
+
+' Поток данных между инструментами: результат проверки
+' совместимости подсказывает, какой блок питания выбрать.
+T2 --> T3 : подсказка по БП
+T4 --> T5 : корзина → заказ
+T5 --> T6
+T5 --> T7
+T6 ..> T8 : запрещённые переходы
+T9 ..> T4 : проверка остатка
+@enduml

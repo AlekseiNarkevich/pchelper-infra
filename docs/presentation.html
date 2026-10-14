@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Презентация — PCHelper</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><div class="wrap">
+  <h1>Презентация</h1>
+  <p>Материалы презентации проекта</p>
+</div></header>
+<nav><div class="wrap"><a href="index.html">Главная</a><a href="requirements.html">Функциональные требования</a><a href="files.html">Файлы приложения</a><a href="db.html">Схема базы данных</a><a href="api.html">API-проекта</a><a href="mcp.html">MCP-сервер</a><a href="spec.html">Доп. спецификация</a><a href="infra.html">Инфраструктура и CI/CD</a><a href="labs.html">Лабораторные работы</a><a href="presentation.html" class="on">Презентация</a></div></nav>
+<main class="wrap">
+
+<p>Презентация должна отражать распределение задач в команде,
+требования к приложению, схему базы данных и организацию работы
+с репозиторием и проектом.</p>
+
+<h2>О чём рассказывать</h2>
+<ol>
+<li><strong>Задача и аудитория.</strong> PCHelper — интернет-магазин
+комплектующих и готовых ПК с конфигуратором сборки.</li>
+<li><strong>Модель требований.</strong> 16 функциональных и
+10 нефункциональных требований, 25 вариантов использования.</li>
+<li><strong>Схема базы данных.</strong> 22 таблицы, ключевые решения:
+денежные суммы в <code>NUMERIC</code>, статусы заказа через
+перечисление, запрет отмены доставленного заказа на уровне БД.</li>
+<li><strong>API.</strong> 39 операций в OpenAPI 3.0.3, спецификация —
+единственный источник правды для бэкенда и документации.</li>
+<li><strong>MCP-сервер.</strong> 13 инструментов, 9 ресурсов,
+5 шаблонов промптов; агент не может отменить доставленный заказ.</li>
+<li><strong>Работа с репозиторием.</strong> Защищённая ветка
+<code>main</code>, pull request, обязательный зелёный CI и
+Quality Gate перед слиянием.</li>
+<li><strong>Распределение задач.</strong> Кто какие задачи выполнял
+и в каком порядке.</li>
+</ol>
+
+<h2>Материалы для слайдов</h2>
+<ul>
+<li>Диаграмма модели требований — раздел
+<a href="requirements.html">«Функциональные требования»</a>.</li>
+<li>Физическая ERD — раздел <a href="db.html">«Схема базы данных»</a>.</li>
+<li>Карта маршрутов — раздел <a href="api.html">«API-проекта»</a>.</li>
+<li>Архитектура MCP — раздел <a href="mcp.html">«MCP-сервер»</a>.</li>
+<li>Конвейер CI/CD — раздел
+<a href="infra.html">«Инфраструктура и CI/CD»</a>.</li>
+</ul>
+
+</main>
+<footer>Лабораторная работа № 4 — PCHelper &middot; <a href="https://github.com/AlekseiNarkevich/pchelper-infra">репозиторий</a> &middot; <a href="https://pchelper-infra.onrender.com">развёрнутый сервис</a> &middot; <a href="https://sonarcloud.io/dashboard?id=AlekseiNarkevich_pchelper-infra">SonarCloud</a></footer>
+</body>
+</html>

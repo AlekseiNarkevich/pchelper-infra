@@ -1,0 +1,109 @@
+@startuml 11-cicd-pipeline
+
+' ============================================================================
+'  CI/CD-КОНВЕЙЕР PCHelper (GitHub Actions + SonarQube + Docker + Render)
+'  Лабораторная работа № 4, задание 6, пункты 6, 10, 11, 12, 13.
+'
+'  Модель веток: feature/* -> develop -> main.
+'  Требования методички, которые обеспечивает конвейер:
+'    * п. 6  — тесты выполняются ДО сборки образа;
+'    * п. 10 — сборка ведётся в Docker-контейнерах;
+'    * п. 11 — спецификация Swagger генерируется как этап сборки;
+'    * п. 12 — SonarQube подключён обязательным этапом;
+'    * п. 13 — деплой выполняется только после успешных проверок.
+'
+'  Ключевой механизм блокировки:
+'      build-and-push: needs: [ test, sonar ]
+'  Если тесты провалились или Quality Gate не пройден, образ не публикуется
+'  и деплой не запускается.
+' ============================================================================
+title CI/CD-конвейер PCHelper (GitHub Actions + SonarQube + Docker + Render)
+skinparam shadowing false
+skinparam linetype ortho
+skinparam ArrowColor #1976d2
+skinparam ArrowFontColor #0d47a1
+skinparam rectangle {
+  BackgroundColor #ffffff
+  BorderColor #1976d2
+}
+
+actor "Разработчик" as dev
+actor "Ревьюер" as rev
+database "GitHub\n(main / develop / feature/*)" as gh
+
+' ЭТАП 1. Проверки, выполняемые для ЛЮБОГО pull request.
+' Цель — не допустить попадания брака в develop.
+rectangle "Этап 1. Pull Request" #ffffff {
+  [Job: lint\nESLint · Stylelint] as j1
+  [Job: unit-test\nVitest · покрытие ≥ 70 %] as j2
+  [Job: build-image\nDocker Buildx] as j3
+}
+
+' ЭТАП 2. Конвейер продакшна. Запускается только при коммите
+' в ветку main, то есть после ревью и зелёного develop.
+rectangle "Этап 2. main (production)" #fafafa {
+  [Job: integration-test\nVitest + supertest + Testcontainers] as j4
+  [Job: sonar-scan\nSonarQube Cloud + Quality Gate] as j5
+  [Job: openapi\nredocly lint → bundle →\ngenerate HTML/JSON] as j6
+  [Job: build-push\npush :latest + :sha в GHCR] as j7
+  [Job: deploy\nRender Web Service\n(autoDeploy: false → webhook)] as j8
+}
+
+' ЭТАП 3. Наблюдаемость и документация: метрики качества,
+' сгенерированная документация API, страницы вики.
+rectangle "Этап 3. Наблюдаемость" #fff8e1 {
+  [SonarQube Dashboard\nNew Code · Coverage · Bugs] as j9
+  [GitHub Pages\nдокументация проекта] as j10
+  [Wiki репозитория\napi.md · db.md · mcp.md] as j11
+}
+
+' Разработчик работает только в feature-ветке, связанной с задачей
+' (issue) из GitHub Project. Прямые коммиты в main запрещены.
+dev -> gh : git push feature/…
+gh -> j1
+gh -> j2
+j1 -> j3
+j2 -> j3
+j3 -> rev : отчёт о покрытии и образе
+rev -> gh : approve / changes requested
+gh -> gh : merge → develop
+gh -> j4 : develop
+j4 -> j5
+j5 -> j9
+j6 -> j10
+j6 -> j11
+j5 -> j7 : «Passed» Quality Gate
+j7 -> j8
+j8 -> gh : статус деплоя (commit SHA)
+
+' ПУНКТ 12 ЗАДАНИЯ 6. Параметр sonar.qualitygate.wait=true заставляет
+' задание ждать вердикта Quality Gate. При статусе Failed
+' последующие шаги не выполняются — сборка не публикуется.
+note right of j5
+  Этап 12 задания 6:
+  SonarCloud/SonarQube подключается
+  как обязательный шаг;
+  при «Failed» сборка не публикуется
+end note
+
+' ПУНКТ 11 ЗАДАНИЯ 6. Спецификация Swagger генерируется на этапе
+' сборки: redocly lint -> bundle -> статическая документация.
+' Результат выгружается артефактом и публикуется на GitHub Pages.
+note right of j6
+  Этап 11 задания 6:
+  спецификация Swagger/OpenAPI
+  генерируется на этапе сборки
+  и попадает в GitHub Pages
+end note
+
+' ПРАВИЛА ВЕТОК:
+' 1. main защищена: требуется 1 approve и зелёный статус CI;
+' 2. каждая задача из Project оформлена как issue с чеклистом;
+' 3. коммиты — в формате Conventional Commits.
+note bottom of gh
+  Правила веток:
+  feature/* → develop → main
+  main защищён: требуется 1 approve
+  и зелёный статус CI
+end note
+@enduml

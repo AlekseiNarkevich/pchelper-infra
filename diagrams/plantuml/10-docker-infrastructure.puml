@@ -1,0 +1,106 @@
+@startuml 10-docker-infrastructure
+
+' ============================================================================
+'  ИНФРАСТРУКТУРА PCHelper НА DOCKER И DOCKER COMPOSE
+'  Лабораторная работа № 4, задание 6, пункты 7–8.
+'  Это УТОЧНЕНИЕ диаграммы развёртывания из лабораторной работы 3
+'  (ЛР3/diagrams/plantuml/20-deployment.puml): добавлены контейнеры,
+'  порты, healthcheck, тома данных и тестовое окружение.
+'
+'  Состав окружения (docker-compose.yml):
+'    web    — React 18 + Vite, собранные в статику и отданные nginx;
+'    api    — Node.js 20 + Express, REST API /api/v1;
+'    mcp    — Python 3.12 + MCP Python SDK (профиль «mcp»);
+'    db     — PostgreSQL 15 с томом pgdata;
+'    cache  — Redis 7 для кэша и сессий;
+'    tests  — контейнер с автотестами (профиль «test»).
+'
+'  Принципы, отражённые на диаграмме:
+'    * healthcheck у каждого контейнера, запуск по service_healthy;
+'    * схема БД монтируется в /docker-entrypoint-initdb.d и применяется
+'      автоматически при первом старте;
+'    * секреты передаются через .env, а не зашиты в образ.
+' ============================================================================
+title Инфраструктура PCHelper на Docker и Docker Compose (уточнение 20-deployment из ЛР3)
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam package {
+  BackgroundColor #fafafa
+  BorderColor #bdbdbd
+  FontColor #0d47a1
+  FontStyle bold
+}
+skinparam ArrowColor #1976d2
+skinparam rectangle {
+  BackgroundColor #ffffff
+  BorderColor #1976d2
+}
+
+actor "Пользователь / Менеджер" as u
+
+node "Хост разработчика (или Render / VPS)" #ffffff {
+
+  ' Все контейнеры приложения общаются по внутренней сети bridge
+  ' и обращаются друг к другу по именам сервисов, а не по IP.
+  node "Сеть pchelper-net (bridge)" as net #fafafa {
+    node "Контейнер web" #ffffff {
+      [frontend: React 18 + Vite\nbuild → nginx:alpine\nпорт 8080:80] as web
+    }
+    node "Контейнер api" #ffffff {
+      [backend: Node.js 20 + Express\nпорт 3001:3001\nHEALTHCHECK /api/v1/health] as api
+    }
+    node "Контейнер mcp" #ffffff {
+      [mcp-server: Python 3.12\n+ MCP Python SDK\nstdio / :8080/mcp] as mcp
+    }
+    node "Контейнер db" #ffffff {
+      database "postgres:15-alpine\n-volume pgdata\nпорт 5432" as db
+    }
+    node "Контейнер cache" #ffffff {
+      database "redis:7-alpine\n--requirepass\nпорт 6379" as redis
+    }
+  }
+
+  ' Тестовое окружение включается только по требованию:
+  ' docker compose --profile test run --rm tests
+  node "Инфраструктура тестирования (compose --profile test)" #fff8e1 {
+    [tests: Vitest + supertest\nзапуск API-тестов] as tests
+  }
+}
+
+' Сервисы, которые не разворачиваются в нашем окружении,
+' а подключаются по HTTPS/SMTP через переменные окружения.
+node "Внешние сервисы" #fafafa {
+  [Supabase Storage\nфото товаров] as storage
+  [SMTP-сервер\nуведомления] as smtp
+  [Платёжный API] as pay
+}
+
+' Поток запросов: браузер -> nginx -> (proxy /api) -> api -> БД.
+u --> web : HTTP :8080
+web --> api : fetch /api/v1 (proxy nginx)
+api --> db : SQL :5432
+api --> redis : :6379
+api --> storage : HTTPS
+api --> smtp : :587
+api --> pay : HTTPS
+mcp --> db : SQL
+mcp --> api : REST (прод-режим)
+tests --> api : HTTP
+tests --> db : SQL
+
+' ТОМА ДАННЫХ: именованные тома переживают пересоздание контейнера.
+' Без тома каждый перезапуск контейнера postgres приводил бы к
+' потере всех данных.
+note bottom of db
+  Volume: pchelper_pgdata
+  Переменные окружения — .env / .env.docker
+  Healthcheck: pg_isready
+end note
+
+' HEALTHCHECK обязателен для Redis: без него Docker Compose
+' не будет ждать готовности кэша и api может стартовать раньше.
+note bottom of redis
+  Healthcheck: redis-cli ping
+end note
+@enduml

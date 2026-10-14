@@ -1,0 +1,384 @@
+@startuml 04-physical-erd
+
+' ============================================================================
+'  ФИЗИЧЕСКАЯ МОДЕЛЬ ДАННЫХ (соответствует рис. 3 методички)
+'  Лабораторная работа № 4, задание 2, пункт 2. СУБД — PostgreSQL 15.
+'
+'  Обозначения:
+'    <<PK>>    — первичный ключ;
+'    <<FK>>    — внешний ключ;
+'    <<NOT NULL>>, <<UNIQUE>>, <<CHECK>>, <<DEFAULT>>, <<NULL>>
+'             — ограничения столбца.
+'  Имена таблиц и столбцов совпадают с реальной базой приложения PCHelper,
+'  поэтому диаграмма пригодна и как документация существующей схемы.
+'
+'  Структура файла:
+'    1) КАТАЛОГ          — 8 специализированных таблиц комплектующих
+'                          и 2 таблицы готовых конфигураций (унаследованы
+'                          из проекта с 3 курса, типы уточнены);
+'    2) НОВЫЕ СУЩНОСТИ   — рыночная часть магазина, спроектированная в ЛР4;
+'    3) СВЯЗИ            — внешние ключи «один ко многим».
+'
+'  Файлы с DDL: db/01_schema.sql … db/05_seed.sql.
+' ============================================================================
+title Физическая модель базы данных PCHelper (PostgreSQL 15, рис. 3)
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam class {
+  BackgroundColor #e8e8e8
+  BorderColor #bdbdbd
+  ArrowColor #1976d2
+  FontColor #212121
+  FontSize 12
+}
+skinparam linetype ortho
+hide circle
+hide empty fields
+
+' ----------------------------------------------------------------------------
+' 1. КАТАЛОГ КОМПЛЕКТУЮЩИХ (существует в проекте, уточнены типы и CHECK)
+'    Таблицы специализированные, а не одна общая «Товары»: проверки
+'    совместимости (сокет, TDP, длина) возможны только по типизированным
+'    столбцам. Подробное обоснование — раздел 2.1 отчёта.
+' ============ СПРАВОЧНИКИ И КАТАЛОГ (уже существуют) ============
+entity "Процессоры" as cpu {
+  * id : integer <<PK>>
+  --
+  название : varchar(255) <<NOT NULL>>
+  производитель : varchar(50)
+  сокет : varchar(50)
+  ядра_потоки : jsonb
+  частота : jsonb
+  tdp : integer
+  встроенная_графика : varchar(100)
+  поддержка_памяти : varchar(50)
+  цена : integer <<CHECK >= 0>>
+  фото_url : text
+}
+
+entity "МатеринскиеПлаты" as mobo {
+  * id : integer <<PK>>
+  --
+  название : varchar(255) <<NOT NULL>>
+  сокет : varchar(50)
+  тип_памяти : varchar(50)
+  форм_фактор : varchar(50)
+  чипсет : varchar(50)
+  фазы_питания : varchar(50)
+  макс_объем_памяти : integer
+  m2_слоты : integer
+  sata_порты : integer
+  цена : integer
+  фото_url : text
+}
+
+entity "ОЗУ" as ram {
+  * id : integer <<PK>>
+  --
+  название : varchar(255)
+  объем : integer
+  частота : integer
+  тип : varchar(50)
+  профили_разгона : boolean
+  тайминги : varchar(50)
+  цена : integer
+  фото_url : text
+}
+
+entity "СистемыОхлаждения" as cool {
+  * id : integer <<PK>>
+  --
+  название : varchar(255)
+  тип : varchar(50)
+  tdp : integer
+  высота : integer
+  длина_радиатора : integer
+  шум_макс : integer
+  цена : integer
+  фото_url : text
+}
+
+entity "Видеокарты" as gpu {
+  * id : integer <<PK>>
+  --
+  название : varchar(255)
+  производитель : varchar(50)
+  объем_памяти : integer
+  длина : integer
+  tdp : integer
+  количество_вентиляторов : integer
+  толщина_в_слотах : numeric(2,1)
+  цена : integer
+  фото_url : text
+}
+
+entity "Накопители" as stg {
+  * id : integer <<PK>>
+  --
+  название : varchar(255)
+  объем_в_гб : integer
+  скорость_чтения_записи : jsonb
+  драм_буфер : boolean
+  радиатор_охлаждения : boolean
+  тип : varchar(50)
+  интерфейс : varchar(50)
+  цена : integer
+  фото_url : text
+}
+
+entity "БлокиПитания" as psu {
+  * id : integer <<PK>>
+  --
+  название : varchar(255)
+  мощность_в_ваттах : integer
+  pcie_gen5 : boolean
+  количество_pcie : integer
+  количество_cpu : integer
+  количество_sata : integer
+  стандарт_блока_питания : varchar(50)
+  сертификат_80plus : varchar(50)
+  сертификат_cybenetics : varchar(50)
+  модульный : boolean
+  цена : integer
+  фото_url : text
+}
+
+entity "Корпуса" as chs {
+  * id : integer <<PK>>
+  --
+  название : varchar(255)
+  форм_фактор : varchar(50)
+  макс_длина_gpu : integer
+  макс_высота_кулера : integer
+  поддержка_сжо : boolean
+  макс_длина_радиатора : integer
+  вентиляторы_в_комплекте : varchar(255)
+  цена : integer
+  фото_url : text
+}
+
+entity "ГотовыеКонфигурации" as cfg {
+  * id : integer <<PK>>
+  --
+  процессор_id : integer <<FK>>
+  материнская_плата_id : integer <<FK>>
+  озу_id : integer <<FK>>
+  видеокарта_id : integer <<FK, NULL>>
+  блокпитания_id : integer <<FK>>
+  корпус_id : integer <<FK>>
+  охлаждение_id : integer <<FK>>
+  название : varchar(255)
+  задачи : varchar(255)
+  фото_url : text
+}
+
+entity "КонфигурацияНакопители" as cfg_stg {
+  * id : integer <<PK>>
+  --
+  конфигурация_id : integer <<FK>>
+  накопитель_id : integer <<FK>>
+}
+
+' ----------------------------------------------------------------------------
+' 2. НОВЫЕ СУЩНОСТИ РЫНОЧНОЙ ЧАСТИ (спроектированы в ЛР4)
+'    Пользователи и сессии, складские остатки, сохранённые сборки,
+'    корзина, промокоды, заказы, отзывы, журнал действий агента.
+' ============ НОВЫЕ СУЩНОСТИ ============
+entity "Пользователи" as usr {
+  * id : integer <<PK>>
+  --
+  email : citext <<UNIQUE, NOT NULL>>
+  password_hash : varchar(255)
+  имя : varchar(100)
+  телефон : varchar(30)
+  роль : user_role <<NOT NULL>>
+  создан_в : timestamptz
+}
+
+entity "ОбновительныеТокены" as rt {
+  * id : integer <<PK>>
+  --
+  пользователь_id : integer <<FK>>
+  token_hash : varchar(128) <<UNIQUE>>
+  истекает_в : timestamptz
+  отозван : boolean
+}
+
+entity "Наличие" as stock {
+  * тип_компонента : component_type <<PK>>
+  * идентификатор : integer <<PK>>
+  --
+  количество : integer <<DEFAULT 0>>
+  зарезервировано : integer <<DEFAULT 0>>
+  обновлено : timestamptz
+}
+
+entity "Сборки" as bld {
+  * id : integer <<PK>>
+  --
+  пользователь_id : integer <<FK>>
+  название : varchar(150)
+  общая_стоимость : integer
+  создан_в : timestamptz
+  обновлён_в : timestamptz
+}
+
+entity "Сборка_Компоненты" as bld_it {
+  * id : integer <<PK>>
+  --
+  сборка_id : integer <<FK>>
+  количество : integer
+  процессор_id : integer <<FK>>
+  материнская_плата_id : integer <<FK>>
+  озу_id : integer <<FK>>
+  видеокарта_id : integer <<FK>>
+  охлаждение_id : integer <<FK>>
+  накопитель_id : integer <<FK>>
+  блокпитания_id : integer <<FK>>
+  корпус_id : integer <<FK>>
+}
+
+entity "Корзины" as cart {
+  * id : integer <<PK>>
+  --
+  пользователь_id : integer <<UNIQUE, FK>>
+  обновлена : timestamptz
+}
+
+entity "Корзина_Позиции" as cart_it {
+  * id : integer <<PK>>
+  --
+  корзина_id : integer <<FK>>
+  количество : integer
+  цена : integer
+  процессор_id : integer <<FK>>
+  материнская_плата_id : integer <<FK>>
+  озу_id : integer <<FK>>
+  видеокарта_id : integer <<FK>>
+  охлаждение_id : integer <<FK>>
+  накопитель_id : integer <<FK>>
+  блокпитания_id : integer <<FK>>
+  корпус_id : integer <<FK>>
+}
+
+entity "Заказы" as ord {
+  * id : integer <<PK>>
+  --
+  номер : varchar(20) <<UNIQUE>>
+  пользователь_id : integer <<FK>>
+  статус : order_status <<NOT NULL>>
+  способ_доставки : varchar(20)
+  адрес_доставки : text
+  телефон : varchar(30)
+  способ_оплаты : varchar(20)
+  итоговая_сумма : integer
+  промокод_id : integer <<FK>>
+  создан_в : timestamptz
+  обновлён_в : timestamptz
+}
+
+entity "Заказ_Позиции" as ord_it {
+  * id : integer <<PK>>
+  --
+  заказ_id : integer <<FK>>
+  тип_компонента : component_type
+  идентификатор : integer
+  название : varchar(255)
+  цена_за_единицу : integer
+  количество : integer
+  сумма : integer
+}
+
+entity "Промокоды" as promo {
+  * id : integer <<PK>>
+  --
+  код : varchar(30) <<UNIQUE>>
+  тип_скидки : varchar(20)
+  значение : integer
+  действует_с : date
+  действует_по : date
+  активен : boolean
+}
+
+entity "Отзывы" as rev {
+  * id : integer <<PK>>
+  --
+  пользователь_id : integer <<FK>>
+  тип_компонента : component_type
+  идентификатор : integer
+  оценка : smallint <<CHECK 1..5>>
+  текст : text
+  создан_в : timestamptz
+  статус_модерации : varchar(20)
+}
+
+entity "ЖурналДействийАгента" as audit {
+  * id : bigint <<PK>>
+  --
+  момент : timestamptz
+  агент : varchar(100)
+  инструмент : varchar(100)
+  аргументы : jsonb
+  результат : varchar(1000)
+  код_ответа : integer
+  длительность_мс : integer
+}
+
+' ----------------------------------------------------------------------------
+' 3. СВЯЗИ (внешние ключи)
+'    Обозначения: ||--o{ — «один ко многим», ||--o| — «один к нулю
+'    или одному». Условные подписи после двоеточия объясняют смысл.
+' ============ СВЯЗИ ============
+cpu ||--o| cfg
+mobo ||--o| cfg
+ram ||--o| cfg
+gpu ||--o| cfg
+psu ||--o| cfg
+chs ||--o| cfg
+cool ||--o| cfg
+cfg ||--o{ cfg_stg
+stg ||--o{ cfg_stg
+
+usr ||--o{ rt
+usr ||--o{ bld
+bld ||--|{ bld_it
+cpu ||--o{ bld_it
+mobo ||--o{ bld_it
+ram ||--o{ bld_it
+gpu ||--o{ bld_it
+cool ||--o{ bld_it
+stg ||--o{ bld_it
+psu ||--o{ bld_it
+chs ||--o{ bld_it
+
+usr ||--o| cart
+cart ||--o{ cart_it
+cpu ||--o{ cart_it
+mobo ||--o{ cart_it
+ram ||--o{ cart_it
+gpu ||--o{ cart_it
+cool ||--o{ cart_it
+stg ||--o{ cart_it
+psu ||--o{ cart_it
+chs ||--o{ cart_it
+
+usr ||--o{ ord
+promo ||--o{ ord
+ord ||--|{ ord_it
+
+usr ||--o{ rev
+
+' ПРИМЕЧАНИЕ 1: почему в позиции заказа хранится снимок названия и цены.
+note right of ord_it
+  Снимок названия и цены
+  фиксируется в момент
+  оформления заказа
+  (иммутабельная история)
+end note
+
+' ПРИМЕЧАНИЕ 2: ограничение на состав позиции корзины и сборки.
+note bottom of bld_it
+  CHECK: заполнено ровно одно
+  из 8 полей-ссылок
+end note
+@enduml

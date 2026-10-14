@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Инфраструктура и CI/CD — PCHelper</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><div class="wrap">
+  <h1>Инфраструктура и CI/CD</h1>
+  <p>Задание 6 — контейнеризация, непрерывная интеграция, проверка качества и развёртывание</p>
+</div></header>
+<nav><div class="wrap"><a href="index.html">Главная</a><a href="requirements.html">Функциональные требования</a><a href="files.html">Файлы приложения</a><a href="db.html">Схема базы данных</a><a href="api.html">API-проекта</a><a href="mcp.html">MCP-сервер</a><a href="spec.html">Доп. спецификация</a><a href="infra.html" class="on">Инфраструктура и CI/CD</a><a href="labs.html">Лабораторные работы</a><a href="presentation.html">Презентация</a></div></nav>
+<main class="wrap">
+<figure><img src="img/10-docker-infrastructure.png" alt="Инфраструктура на Docker и Docker Compose" loading="lazy"><figcaption>Инфраструктура на Docker и Docker Compose</figcaption></figure><figure><img src="img/11-cicd-pipeline.png" alt="Конвейер GitHub Actions с этапом SonarQube" loading="lazy"><figcaption>Конвейер GitHub Actions с этапом SonarQube</figcaption></figure><figure><img src="img/12-repo-branches.png" alt="Репозитории и модель веток" loading="lazy"><figcaption>Репозитории и модель веток</figcaption></figure>
+<h3>Структура репозиториев и модель веток</h3>
+<p><strong>Файл:</strong> <a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/12-repo-branches.puml"><code>diagrams/plantuml/12-repo-branches.puml</code></a></p>
+<h5>Репозитории</h5>
+<p><strong>Фактически создан один репозиторий</strong> — инфраструктурный стенд задания 6:</p>
+<div class='table-wrap'><table><thead><tr><th>Репозиторий</th><th>Назначение</th><th>Состояние</th></tr></thead><tbody><tr><td><a href="https://github.com/AlekseiNarkevich/pchelper-infra"><code>AlekseiNarkevich/pchelper-infra</code></a></td><td>Документация лабораторной работы, вики, GitHub Pages, Docker-окружение, CI/CD, SonarQube, развёртывание</td><td><strong>рабочий</strong>: конвейер зелёный, сервис доступен на <code>pchelper-infra.onrender.com</code></td></tr></tbody></table></div>
+<p>Задание 6, пункт 2 требует разнести проект по репозиториям бекенда, веб- и мобильной версии. Целевая структура курсовой работы — четыре репозитория в организации <code>fpmi-hci-2026</code>: документация, серверное приложение и API, веб-клиент и мобильный клиент. На момент сдачи лабораторной работы они не созданы, поэтому в отчёте ссылки на них не приводятся — вместо них показано то, что действительно сделано.</p>
+<p><strong>Репозиторий, в котором выполняется задание 6.</strong> Конвейер CI/CD, проверка качества кода и развёртывание выполняются в отдельном личном репозитории <a href="https://github.com/AlekseiNarkevich/pchelper-infra"><code>AlekseiNarkevich/pchelper-infra</code></a>. Это сознательное решение: инфраструктура задания 6 — учебный стенд, который поднимается одной командой <code>docker compose up -d --build</code>, и выносить его в отдельный репозиторий преждевременно, пока нечего переносить. Структура:</p>
+<pre><code>pchelper-infra/
+├── .github/workflows/ci.yml     # конвейер из шести этапов
+├── docker-compose.yml           # postgres, redis, api, web, mcp
+├── backend/                     # Hello World API + 13 тестов
+├── frontend/                    # nginx + страница проверки окружения
+├── mcp/                         # MCP-сервер задания 5
+├── sonar-project.properties     # конфигурация SonarQube
+└── README.md</code></pre>
+<p>Когда стенд будет перенесён в код магазина (курсовая работа), конвейер переедёт в репозиторий серверного приложения.</p>
+<h5>Модель веток</h5>
+<p>Согласованная командой модель, одинаковая для всех репозиториев. Фактически в <code>pchelper-infra</code> сейчас создана только ветка <code>main</code>; остальные ветки появятся вместе с первыми задачами из GitHub Project:</p>
+<div class='table-wrap'><table><thead><tr><th>Ветка</th><th>Назначение</th></tr></thead><tbody><tr><td><code>main</code></td><td>Продакшн. Защищена: требуется approve и зелёный статус CI</td></tr><tr><td><code>develop</code></td><td>Интеграция, сюда сливаются feature-ветки</td></tr><tr><td><code>feature/&lt;задача&gt;</code></td><td>Одна задача из GitHub Project</td></tr><tr><td><code>release/&lt;версия&gt;</code></td><td>Подготовка релиза из <code>develop</code></td></tr><tr><td><code>hotfix/&lt;проблема&gt;</code></td><td>Срочное исправление из <code>main</code></td></tr></tbody></table></div>
+<h5>Соглашение о ветках</h5>
+<div class='table-wrap'><table><thead><tr><th>Ветка</th><th>Назначение</th><th>Правило</th></tr></thead><tbody><tr><td><code>main</code></td><td>Продакшн</td><td>Защищена правилом <code>Protect main</code>: обязателен <strong>pull request</strong> (0 approvals — на этапе лабораторной работу ведёт один человек), <strong>зелёный статус CI</strong>, squash-слияние, запрет force push и удаления ветки. Только коммиты, прошедшие тесты, SonarQube Quality Gate и попавшие в собранный образ</td></tr><tr><td><code>develop</code></td><td>Интеграция</td><td>Все feature-ветки сливаются сюда. Здесь же прогоняется полный CI</td></tr><tr><td><code>feature/&lt;задача&gt;</code></td><td>Одна задача из Project</td><td>Ветка создаётся под <strong>один issue</strong>. Коммиты вида <code>feat(api): добавлен POST /cart/merge (#42)</code></td></tr><tr><td><code>release/&lt;версия&gt;</code></td><td>Подготовка релиза</td><td>Создаётся из <code>develop</code>, в неё переносятся только исправления</td></tr><tr><td><code>hotfix/&lt;проблема&gt;</code></td><td>Срочное исправление</td><td>Из <code>main</code>, сливается и в <code>main</code>, и в <code>develop</code></td></tr></tbody></table></div>
+<p><strong>Обязательные правила, согласованные командой:</strong></p>
+<ol><li>Разработка ведётся <strong>только через систему контроля версий</strong> — правки</li></ol>
+<p>в <code>main</code> напрямую запрещены, ветка защищена настройками GitHub.</p>
+<ol><li>Каждая задача из GitHub Project = отдельный issue с чеклистом</li></ol>
+<p>критериев приёмки.</p>
+<ol><li>Pull Request обязателен; в шаблоне PR — чек-лист ревью</li></ol>
+<p>(<code>.github/PULL_REQUEST_TEMPLATE.md</code>).</p>
+<ol><li>Merge в <code>main</code> только при зелёных проверках: тесты, Quality Gate,</li></ol>
+<p>успешная сборка образа.</p>
+<ol><li>Сообщения коммитов — на английском в формате Conventional Commits.</li></ol>
+<p><strong>Как настраивается (пошагово):</strong></p>
+<ol><li>*Settings → Rulesets → **New ruleset*<strong> → в выпадающем списке </strong>Branch**.</li><li><strong>Ruleset Name:</strong> <code>Protect main</code>.</li><li><strong>Enforcement status:</strong> <code>Active</code> (не <code>Disabled</code> и не <code>Evaluate</code>).</li><li><strong>Rules → Target branches → Include:</strong> добавить <code>refs/heads/main</code>.</li><li>Включить правила:</li></ol>
+<ul><li><strong>Require a pull request before merging</strong> — Required approvals: <code>1</code></li></ul>
+<p>(см. примечание ниже);</p>
+<ul><li><strong>Do not allow bypassing the above settings</strong> — чтобы правило</li></ul>
+<p>нельзя было обойти кнопкой <em>Admin</em>;</p>
+<ul><li><strong>Block force pushes</strong> — запрет <code>git push --force</code>;</li><li><strong>Restrict deletions</strong> — запрет удаления ветки;</li><li><strong>Require linear history</strong> — запрет merge-коммитов.</li></ul>
+<ol><li><strong>Require status checks to pass before merging</strong> — включить</li></ol>
+<p><em>после</em> первого прогона workflow: GitHub показывает в списке только те проверки, которые уже отработали хотя бы раз. Добавить: <code>lint</code>, <code>unit-and-integration</code>, <code>openapi-spec</code>, <code>sonar-quality-gate</code>, <code>build-and-push</code>.</p>
+<h3>Docker-инфраструктура</h3>
+<p><strong>Файл:</strong> <a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/10-docker-infrastructure.puml"><code>diagrams/plantuml/10-docker-infrastructure.puml</code></a></p>
+<p>Это <strong>уточнение</strong> диаграммы развёртывания из лабораторной работы 3 (<code>20-deployment.puml</code>): в ней появились контейнеры, порты, healthcheck, тома и профиль тестового окружения.</p>
+<h5>Состав окружения</h5>
+<div class='table-wrap'><table><thead><tr><th>Контейнер</th><th>Образ</th><th>Порт</th><th>Healthcheck</th><th>Volume</th></tr></thead><tbody><tr><td><code>pchelper-web</code></td><td>сборка React → <code>nginx:1.27-alpine</code></td><td>8080:80</td><td><code>wget http://127.0.0.1/</code></td><td>—</td></tr><tr><td><code>pchelper-api</code></td><td><code>node:20-alpine</code>, многостадийная сборка</td><td>3001:3001</td><td><code>wget …/api/v1/health</code></td><td>—</td></tr><tr><td><code>pchelper-mcp</code></td><td><code>python:3.12-slim</code> (профиль <code>mcp</code>)</td><td>8081:8080</td><td>HTTP-проверка <code>/mcp</code></td><td><code>mcpdata</code></td></tr><tr><td><code>pchelper-postgres</code></td><td><code>postgres:15-alpine</code></td><td>5432:5432</td><td><code>pg_isready</code></td><td><code>pgdata</code></td></tr><tr><td><code>pchelper-redis</code></td><td><code>redis:7-alpine</code></td><td>6379:6379</td><td><code>redis-cli ping</code></td><td><code>redisdata</code></td></tr><tr><td><code>pchelper-tests</code></td><td>backend target <code>dev</code> (профиль <code>test</code>)</td><td>—</td><td>—</td><td>—</td></tr></tbody></table></div>
+<h5>Решения по контейнеризации</h5>
+<div class='table-wrap'><table><thead><tr><th>Решение</th><th>Обоснование</th></tr></thead><tbody><tr><td><strong>Многостадийная сборка backend</strong> (<code>deps</code> → <code>dev</code> → <code>prod</code>)</td><td>В production-образ не попадают dev-зависимости и исходники тестов; целевой слой <code>deps</code> кэшируется между сборками</td></tr><tr><td><strong>Запуск от непривилегированного пользователя</strong></td><td>В <code>prod</code>-стадии создаётся пользователь <code>pchelper</code>, <code>USER pchelper</code> — минимизация поверхности атаки</td></tr><tr><td><strong><code>tini</code> как entrypoint</strong></td><td>Корректная обработка <code>SIGTERM</code> от Docker Compose: контейнер успевает завершить запросы</td></tr><tr><td><strong>Healthcheck в каждом образе</strong></td><td><code>depends_on: condition: service_healthy</code> — API стартует только после готовности БД и кэша</td></tr><tr><td><strong>Схема БД в <code>/docker-entrypoint-initdb.d</code></strong></td><td>Скрипты из <code>db/</code> применяются автоматически при первом запуске <code>postgres</code></td></tr><tr><td><strong>Профили <code>test</code> и <code>mcp</code></strong></td><td>Обычный запуск поднимает только 5 контейнеров; тесты и MCP — по требованию</td></tr><tr><td><strong>Переменные окружения в <code>.env</code></strong></td><td>Секреты не попадают в образ и в репозиторий; <code>.env</code> в <code>.gitignore</code></td></tr><tr><td><strong><code>nginx</code> с SPA-fallback и проксированием <code>/api</code></strong></td><td>Фронтенд работает на относительном URL <code>/api/v1</code> в любом окружении — не нужно пересобирать при смене адреса API</td></tr></tbody></table></div>
+<h5>Dockerfile (backend, сокращённо)</h5>
+<pre class="lang-dockerfile"><code># ---------- Этап 1: только production-зависимости ----------
+# Вынесено в отдельный слой, чтобы Docker кэшировал npm ci
+# и не переустанавливал пакеты при каждом изменении исходников
+FROM node:20-alpine AS deps
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+# ---------- Этап 2: итоговый образ ----------
+FROM node:20-alpine AS prod
+WORKDIR /app
+
+# Режим работы и порт, который слушает приложение
+ENV NODE_ENV=production PORT=3001
+
+# tini — минимальный init-процесс: корректно обрабатывает SIGTERM
+# от Docker Compose, поэтому контейнер успевает завершить запросы
+RUN apk add --no-cache tini
+
+# Забираем node_modules из слоя deps (dev-зависимости туда не попали)
+COPY --from=deps /app/node_modules ./node_modules
+COPY package*.json ./
+COPY server.js ./
+COPY src ./src
+COPY openapi.yaml ./openapi.yaml
+
+# Создаём непривилегированного пользователя и передаём ему владение файлами:
+# процесс внутри контейнера не должен работать от root
+RUN addgroup -S pchelper &amp;&amp; adduser -S pchelper -G pchelper \
+    &amp;&amp; chown -R pchelper:pchelper /app
+USER pchelper
+
+# Порт, который приложение слушает ВНУТРИ контейнера
+EXPOSE 3001
+
+# Проверка живости: каждые 30 секунд опрашиваем /health.
+# Пока healthcheck не пройден, docker-compose не считает сервис готовым
+# и не запускает зависящие от него контейнеры.
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+    CMD wget -qO- http://127.0.0.1:3001/api/v1/health || exit 1
+
+# tini обязателен первой в ENTRYPOINT, чтобы SIGTERM дошёл до node
+ENTRYPOINT ["/sbin/tini", "--"]
+CMD ["node", "server.js"]</code></pre>
+<p>Оба файла приведены выше в виде листингов — они и есть доказательство. Отдельные скриншоты не нужны.</p>
+<h5>Запуск окружения и фактический результат</h5>
+<pre class="lang-bash"><code># 1. Копируем шаблон переменных окружения и при необходимости правим значения
+cd infra
+cp .env.example .env
+
+# 2. Поднимаем окружение: сборка образов + запуск контейнеров
+docker compose up -d --build
+
+# 3. Смотрим состояние контейнеров
+docker compose ps</code></pre>
+<p>Фактический вывод <code>docker compose ps</code>:</p>
+<pre><code>NAME                IMAGE                SERVICE    STATUS                    PORTS
+pchelper-api        pchelper/api:1.0.0   api        Up 22 seconds (healthy)   0.0.0.0:3001-&gt;3001/tcp
+pchelper-postgres   postgres:15-alpine   postgres   Up 32 seconds (healthy)   0.0.0.0:5432-&gt;5432/tcp
+pchelper-redis      redis:7-alpine       redis      Up 32 seconds (healthy)   0.0.0.0:6379-&gt;6379/tcp
+pchelper-web        pchelper/web:1.0.0   web        Up 16 seconds (healthy)   0.0.0.0:8080-&gt;80/tcp</code></pre>
+<p>Все четыре контейнера в статусе <strong>healthy</strong>. Это результат работы healthcheck'ов: <code>pg_isready</code> для БД, <code>redis-cli ping</code> для кэша и HTTP-запрос к <code>/api/v1/health</code> для backend.</p>
+<p>Остановка и удаление:</p>
+<pre class="lang-bash"><code>docker compose down        # остановить контейнеры, тома останутся
+docker compose down -v     # остановить и удалить тома с данными</code></pre>
+<h3>Автоматические тесты в CI</h3>
+<p>Требование задания 6, пункт 6: «Добавить автоматические тесты, чтобы сервер CI перед сборкой выполнял тесты и формировал сборку только после их прохождения».</p>
+<div class='table-wrap'><table><thead><tr><th>Группа</th><th>Что проверяет</th><th>Файл</th></tr></thead><tbody><tr><td>Юнит-тесты API</td><td><code>/health</code>, <code>/hello</code>, <code>/hello/db</code>, 403 без роли, 200 с ролью, 404 в JSON-формате</td><td><code>infra/backend/tests/health.test.js</code> — <strong>8 тестов</strong></td></tr><tr><td>Smoke-тесты в контейнере</td><td>Те же маршруты, но через сеть Docker Compose и реальный контейнер</td><td><code>infra/backend/tests/smoke.test.js</code> — <strong>5 тестов</strong></td></tr><tr><td>MCP</td><td>39 юнит-тестов доменной логики</td><td><code>mcp/tests/test_services.py</code></td></tr><tr><td><strong>Итого</strong></td><td><strong>52 автоматических теста</strong></td><td></td></tr></tbody></table></div>
+<p>Тесты используют встроенный раннер <code>node:test</code> и глобальный <code>fetch</code>, поэтому образ с тестами не требует vitest и supertest и собирается быстро.</p>
+<p>Фактические результаты прогонов:</p>
+<pre><code>$ cd infra/backend &amp;&amp; npm test
+# tests 8
+# pass  8
+# fail  0
+
+$ docker compose --profile test run --rm tests
+# tests 5
+# pass  5
+# fail  0
+
+$ cd ЛР4/mcp &amp;&amp; pytest -q
+39 passed in 2.12s</code></pre>
+<p><strong>Механизм блокировки сборки</strong> в <a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/.github/workflows/ci.yml"><code>.github/workflows/ci.yml</code></a>:</p>
+<pre class="lang-yaml"><code># build-and-push объявлен через needs: [ test, sonar ].
+# Пока хотя бы один из этих этапов не завершился успешно,
+# сборка образа НЕ начинается — и образ не попадает в реестр.
+build-and-push:
+  needs: [ test, sonar ]
+  …                              # тело job: сборка и push в GHCR</code></pre>
+<p>Покрытие кода считается инструментом <strong>c8</strong> (<code>npm run test:coverage</code>) в формате LCOV, выгружается артефактом <code>coverage</code> и передаётся в SonarQube через <code>sonar.javascript.lcov.reportPaths</code>, поэтому снижение покрытия видно в отчёте о качестве. Фактическое покрытие backend — <strong>95,47 % инструкций</strong>, 100 % функций. Сам каталог <code>coverage/</code> исключён из репозитория через <code>.gitignore</code>.</p>
+<h3>CI/CD-конвейер</h3>
+<p><strong>Файл:</strong> <a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/11-cicd-pipeline.puml"><code>diagrams/plantuml/11-cicd-pipeline.puml</code></a></p>
+<h5>Этапы конвейера</h5>
+<pre><code>pull request → develop
+  ├─ 0. lint              ESLint + Prettier --check
+  ├─ 1. test              unit-тесты + покрытие c8 (lcov.info)
+  └─ 2. openapi           redocly lint → bundle → генерация Swagger
+
+push → main
+  ├─ 3. sonar             SonarQube Quality Gate (wait=true, таймаут 300 с)
+  ├─ 4. build-and-push    сборка и публикация образов в GHCR (:latest и :sha)
+  └─ 5. deploy            вебхук Render</code></pre>
+<p><strong>Зависимости между этапами</strong> (объявлены через <code>needs</code>):</p>
+<div class='table-wrap'><table><thead><tr><th>Этап</th><th>Зависит от</th><th>Условие запуска</th></tr></thead><tbody><tr><td><code>lint</code></td><td>—</td><td>всегда</td></tr><tr><td><code>test</code></td><td><code>lint</code></td><td>всегда</td></tr><tr><td><code>openapi</code></td><td><code>lint</code></td><td>всегда, идёт параллельно с тестами</td></tr><tr><td><code>sonar</code></td><td><code>test</code>, <code>lint</code></td><td>только при пуше в <code>main</code></td></tr><tr><td><code>build-and-push</code></td><td><code>test</code>, <code>sonar</code></td><td><code>test</code> — успех <strong>и</strong> <code>sonar</code> — успех или пропущен</td></tr><tr><td><code>deploy</code></td><td><code>build-and-push</code></td><td>только при пуше в <code>main</code></td></tr></tbody></table></div>
+<p>Таким образом, образ публикуется только после зелёных тестов <strong>и</strong> зелёного Quality Gate. Если SonarQube провалился — публикации не будет: условие требует именно <code>needs.sonar.result == 'success'</code>.</p>
+<h5>Секреты, необходимые для конвейера</h5>
+<p><em>Settings → Secrets and variables → Actions → New repository secret</em></p>
+<div class='table-wrap'><table><thead><tr><th>Секрет</th><th>Где получить</th><th>Что делает без него</th></tr></thead><tbody><tr><td><code>SONAR_TOKEN</code></td><td>Личный кабинет SonarCloud: <em>My Account → Security → Generate Token</em></td><td>Этап 3 завершается ошибкой с инструкцией — Quality Gate не выполняется, образы не собираются</td></tr><tr><td><code>RENDER_DEPLOY_HOOK</code></td><td>Панель Render: веб-сервис → <em>Settings → Deploy Hook</em></td><td>Этап 5 выводит предупреждение и завершается успешно</td></tr><tr><td><code>GITHUB_TOKEN</code></td><td>выдаётся автоматически</td><td>Публикация образов в GHCR</td></tr></tbody></table></div>
+<pre class="lang-yaml"><code># Правильно: проверка секрета внутри шага
+- name: Проверить наличие токена SonarQube
+  id: token
+  env:
+    TOKEN: ${{ secrets.SONAR_TOKEN }}     # secrets разрешён в env
+  run: |
+    if [ -z "$TOKEN" ]; then
+      echo "::error::Секрет SONAR_TOKEN не создан"
+      exit 1
+    fi
+
+# Неправильно: secrets в условии задания -&gt; файл не разбирается
+sonar:
+  if: github.ref == 'refs/heads/main' &amp;&amp; secrets.SONAR_TOKEN != ''</code></pre>
+<p>Эта ошибка была обнаружена на практике: первый вариант конвейера с таким условием падал за 0 секунд и не создавал ни одного этапа.</p>
+<h5>Генерация Swagger на этапе сборки (пункт 11)</h5>
+<pre class="lang-yaml"><code># Задание GitHub Actions, генерирующее спецификацию Swagger.
+# Выполняется параллельно с тестами: документация не должна ждать
+# успешного Quality Gate, но обязана проверяться линтером.
+openapi:
+  name: Генерация Swagger
+  steps:
+    # Устанавливаем линтер спецификаций OpenAPI
+    - run: npm install --global @redocly/cli
+
+    # Шаг 1. Проверка: синтаксис, ссылки $ref, соответствие примеров схемам
+    - run: redocly lint api/openapi.yaml
+
+    # Шаг 2. Сборка всех $ref в один самодостаточный файл
+    - run: redocly bundle api/openapi.yaml --output api/dist/openapi.bundled.yaml
+
+    # Шаг 3. Статическая HTML-документация (Redoc)
+    - run: npx @redocly/cli build-docs api/dist/openapi.bundled.yaml --output api/dist/index.html
+
+    # Шаг 4. Выгрузка результата артефактом — к нему обращаются
+    # при публикации документации проекта
+    - uses: actions/upload-artifact@v4
+      with:
+        name: swagger-docs
+        path: api/dist/</code></pre>
+<p>Артефакт <code>swagger-docs</code> содержит статическую страницу документации, собранную из того же <code>openapi.yaml</code>, — спецификация API всегда соответствует коду.</p>
+<h3>Проверка качества кода SonarQube</h3>
+<p>Требование задания 6, пункт 12.</p>
+<h5>Локальная версия</h5>
+<pre class="lang-bash"><code># Поднимаем локальный SonarQube Community Edition в одноразовом контейнере.
+# Флаги:
+#   --rm -it              контейнер удаляется после остановки, интерактивный режим;
+#   -p 9000:9000          веб-интерфейс SonarQube на локальном порту 9000;
+#   SONAR_ES_BOOTSTRAP_    отключаем проверки при первом запуске —
+#     CHECKS_DISABLE=true  иначе старт займёт несколько лишних минут.
+docker run --rm -it -p 9000:9000 \
+       -e SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true \
+       sonarqube:community</code></pre>
+<ol><li>Открыть &lt;http://localhost:9000&gt;, войти под учётной записью</li></ol>
+<p><code>admin</code> / <code>admin</code> (смена пароля обязательна).</p>
+<ol><li><em>Create a project</em> → имя <code>pchelper-infra</code>, тип <em>Main branch</em>.</li><li>Скопировать токен: <em>My Account → Security → Generate Token</em>.</li><li>Запустить анализ:</li></ol>
+<pre class="lang-bash"><code>docker run --rm --network host \
+  -e SONAR_HOST_URL=http://localhost:9000 \
+  -e SONAR_TOKEN=&lt;ваш_токен&gt; \
+  -v "$(pwd):/usr/src" \
+  sonarsource/sonar-scanner-cli \
+  -Dproject.sonarKey=pchelper-infra \
+  -Dsonar.sources=backend/src,backend/server.js \
+  -Dsonar.tests=backend/tests \
+  -Dsonar.javascript.lcov.reportPaths=backend/coverage/lcov.info \
+  -Dsonar.qualitygate.wait=true</code></pre>
+<h5>Облачная версия (в CI)</h5>
+<p>В GitHub Actions job <code>sonar</code> используется SonarQube Cloud (бесплатно для публичных репозиториев) — см. раздел 6.8. Ключевой параметр <code>sonar.qualitygate.wait=true</code>: если Quality Gate не пройден, job падает и <strong>образ не публикуется</strong> — это и есть требование «включить проверку качества кода в качестве этапа в CI/CD».</p>
+<h5>Настройки проекта</h5>
+<p>Файл <code>infra/sonar-project.properties</code>:</p>
+<pre class="lang-properties"><code># --- Идентификация проекта в SonarQube / SonarCloud ---
+sonar.projectKey=pchelper-infra
+sonar.organization=students-trio
+
+# --- Что анализировать: исходники и тесты ---
+sonar.sources=src,server.js
+sonar.tests=tests
+sonar.test.inclusions=tests/**
+
+# --- Кодировка исходников (обязательно для кириллицы) ---
+sonar.sourceEncoding=UTF-8
+
+# --- Что НЕ анализировать: зависимости, сборка, отчёты покрытия ---
+sonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**
+
+# --- Отчёт о покрытии кода, который выгружает CI ---
+sonar.javascript.lcov.reportPaths=coverage/lcov.info
+
+# --- Спецификация API: SonarQube умеет проверять контракт OpenAPI ---
+sonar.openapi.path=openapi.yaml
+
+# --- КЛЮЧЕВЫЕ НАСТРОЙКИ (пункт 12 задания 6) ---
+# wait=true — задание ЖДЁТ вердикта Quality Gate и падает при Failed.
+#   Именно это превращает проверку качества в обязательный этап сборки:
+#   при провале Quality Gate образ не публикуется и деплой не запускается.
+sonar.qualitygate.wait=true
+
+# Таймаут ожидания вердикта в секундах (5 минут)
+sonar.qualitygate.timeout=300</code></pre>
+<p>Обратите внимание на строку <code>sonar.openapi.path</code> — SonarQube умеет анализировать спецификацию Open API и показывает проблемы в контракте.</p>
+<h3>Развёртывание на бесплатной платформе</h3>
+<p>Требование задания 6, пункт 13.</p>
+<div class='table-wrap'><table><thead><tr><th>Платформа</th><th>Что разворачивается</th><th>Тариф</th></tr></thead><tbody><tr><td><strong>Render</strong></td><td>Backend (контейнер Docker с <code>openapi.yaml</code>, тестами и Swagger)</td><td>Free (засыпает после 15 минут простоя)</td></tr><tr><td><strong>Vercel</strong> или локально</td><td>Веб-приложение React</td><td>Free</td></tr></tbody></table></div>
+<h5>Настройка Render</h5>
+<ol><li><code>render.com</code> → <strong>New → Web Service</strong> → подключить репозиторий</li></ol>
+<p><a href="https://github.com/AlekseiNarkevich/pchelper-infra"><code>AlekseiNarkevich/pchelper-infra</code></a> (Root Directory: <code>backend</code>).</p>
+<ol><li><strong>Build Command:</strong> Render сам выполнит <code>docker build</code> по <code>Dockerfile</code> из</li></ol>
+<p>каталога <code>backend</code> — отдельная команда не нужна.</p>
+<ol><li><strong>Start Command:</strong> задаётся в <code>Dockerfile</code> (<code>CMD ["node", "src/server.js"]</code>)</li><li><strong>Environment:</strong> переменные из <code>.env.example</code>; <code>DATABASE_URL</code> указывает</li></ol>
+<p>на внешний PostgreSQL (Supabase / Neon / Render PostgreSQL).</p>
+<ol><li><strong>Auto-Deploy: No</strong> — деплой управляется из CI через Deploy Hook.</li><li>Скопировать <strong>Deploy Hook</strong> в секрет репозитория <code>RENDER_DEPLOY_HOOK</code>.</li></ol>
+<h5>Что подтверждает успешное развёртывание</h5>
+<p>Проверки выполнены на развёрнутом сервисе, ответы приведены фактические.</p>
+<div class='table-wrap'><table><thead><tr><th>Адрес</th><th>Фактический ответ</th><th>Вывод</th></tr></thead><tbody><tr><td><code>GET /</code></td><td><code>200</code>, JSON-визитка со списком маршрутов</td><td>сервис отвечает</td></tr><tr><td><code>GET /api/v1/health</code></td><td><code>200</code> <code>{"status":"ok","version":"1.0.0","uptimeSeconds":62, …}</code></td><td>приложение живо</td></tr><tr><td><code>GET /api/v1/hello</code></td><td><code>200</code>, <code>"container":"srv-db7i852vcj2c73doliag-hibernate-7fc7468766-8qxz4"</code></td><td>контейнер на сервере Render, не локальный</td></tr><tr><td><code>GET /api/v1/hello/db</code></td><td><code>503</code> <code>{"status":"degraded","message":"Переменная DATABASE_URL не задана…"}</code></td><td>штатная деградация: БД не подключена</td></tr><tr><td><code>GET /api/v1/admin/orders</code></td><td><code>403</code> <code>{"error":{"code":"FORBIDDEN","message":"Требуется роль manager"}}</code></td><td>разграничение доступа работает</td></tr><tr><td><code>GET /api/v1/admin/orders</code> с токеном</td><td><code>200</code> <code>{"items":[], "total":0, …}</code></td><td>авторизация работает</td></tr></tbody></table></div>
+<p>Фактический ответ корневого адреса:</p>
+<pre class="lang-json"><code>{
+  "service": "PCHelper Infrastructure API",
+  "description": "Учебный стенд задания 6 лабораторной работы № 4",
+  "version": "1.0.0",
+  "environment": "production",
+  "endpoints": {
+    "health": "GET /api/v1/health",
+    "hello": "GET /api/v1/hello",
+    "database": "GET /api/v1/hello/db",
+    "adminOrders": "GET /api/v1/admin/orders (нужен токен)"
+  },
+  "note": "Спецификация REST API — 39 операций, файл api/openapi.yaml"
+}</code></pre>
+<h5>Как деплой связан с конвейером</h5>
+<p>Полная цепочка проверена на коммите <code>5f38c26</code>:</p>
+<pre><code>коммит в main
+   └─ конвейер: Lint → Тесты → Swagger → Quality Gate → образы
+        └─ этап deploy вызывает Deploy Hook
+             └─ Render пересобирает контейнер из Dockerfile
+                  └─ сервис отвечает на pchelper-infra.onrender.com</code></pre>
+<p>Ключевой момент: <strong>Auto-Deploy у Render выключен</strong>. Иначе платформа пересобирала бы сервис на каждом коммите, в том числе на красных проверках, и требование «развертывать только после прохождения тестов и проверки качества кода» было бы нарушено. Единственный путь развёртывания — вебхук из последнего этапа конвейера, который запускается уже после зелёного Quality Gate.</p>
+<h5>Особенность healthcheck при развёртывании</h5>
+<p>Healthcheck в <code>Dockerfile</code> не зашивает порт, а читает переменную окружения:</p>
+<pre class="lang-dockerfile"><code>HEALTHCHECK CMD wget -qO- "http://127.0.0.1:${PORT:-3001}/api/v1/health" || exit 1</code></pre>
+<p>Локально в <code>docker-compose</code> переменная <code>PORT</code> равна <code>3001</code>, поэтому поведение не меняется. Но Render назначает контейнеру случайный порт (в нашем случае <code>10000</code>) и передаёт его через <code>PORT</code>. С жёстко зашитым <code>3001</code> проверка ходила бы в пустоту и помечала контейнер как <code>unhealthy</code> — сервис не доходил бы до состояния <em>Live</em>.</p>
+<p>В логах контейнера это видно:</p>
+<pre><code>[pchelper-api] Сервер запущен: http://0.0.0.0:10000
+[pchelper-api] Режим: production
+==&gt; Your service is live</code></pre>
+</main>
+<footer>Лабораторная работа № 4 — PCHelper &middot; <a href="https://github.com/AlekseiNarkevich/pchelper-infra">репозиторий</a> &middot; <a href="https://pchelper-infra.onrender.com">развёрнутый сервис</a> &middot; <a href="https://sonarcloud.io/dashboard?id=AlekseiNarkevich_pchelper-infra">SonarCloud</a></footer>
+</body>
+</html>

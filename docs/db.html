@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Схема базы данных — PCHelper</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header><div class="wrap">
+  <h1>Схема базы данных</h1>
+  <p>Задание 2 — проектирование физической модели</p>
+</div></header>
+<nav><div class="wrap"><a href="index.html">Главная</a><a href="requirements.html">Функциональные требования</a><a href="files.html">Файлы приложения</a><a href="db.html" class="on">Схема базы данных</a><a href="api.html">API-проекта</a><a href="mcp.html">MCP-сервер</a><a href="spec.html">Доп. спецификация</a><a href="infra.html">Инфраструктура и CI/CD</a><a href="labs.html">Лабораторные работы</a><a href="presentation.html">Презентация</a></div></nav>
+<main class="wrap">
+<figure><img src="img/03-logical-schema.png" alt="Рис. 2 — логическая схема" loading="lazy"><figcaption>Рис. 2 — логическая схема</figcaption></figure><figure><img src="img/04-physical-erd.png" alt="Рис. 3 — физическая ERD (PostgreSQL 15)" loading="lazy"><figcaption>Рис. 3 — физическая ERD (PostgreSQL 15)</figcaption></figure>
+<h3>Логическая схема (рис. 2 методички)</h3>
+<p><strong>Файл:</strong> <a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/03-logical-schema.puml"><code>diagrams/plantuml/03-logical-schema.puml</code></a></p>
+<p>Отличия от ERD ЛР3: логическая схема оперирует <strong>бизнес-сущностями</strong> («Компонент», «Пользователь», «Корзина», «Заказ»), без технических типов и без первичных ключей — именно так, как это принято на рис. 2 методички. Это промежуточный слой между предметной областью и физической моделью.</p>
+<h3>Физическая модель (рис. 3 методички)</h3>
+<p><strong>Файл:</strong> <a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/04-physical-erd.puml"><code>diagrams/plantuml/04-physical-erd.puml</code></a></p>
+<h5>Таблицы каталога (существуют, уточнены)</h5>
+<div class='table-wrap'><table><thead><tr><th>Таблица</th><th>Ключевые уточнения по сравнению с ЛР3</th></tr></thead><tbody><tr><td><code>Процессоры</code></td><td><code>ядра_потоки JSONB</code>, <code>частота JSONB</code> — проверены структура <code>{"cores","threads"}</code> и <code>{"base","boost"}</code> через CHECK; <code>tdp</code> NOT NULL CHECK 1…1000</td></tr><tr><td><code>МатеринскиеПлаты</code></td><td>добавлены CHECK на <code>тип_памяти</code> (DDR3/4/5) и <code>форм_фактор</code> (Mini-ITX…E-ATX)</td></tr><tr><td><code>ОЗУ</code></td><td>добавлен CHECK на <code>тип</code></td></tr><tr><td><code>СистемыОхлаждения</code></td><td>добавлены CHECK на <code>тип</code> (Воздушное/Жидкостное) и <code>tdp &gt; 0</code></td></tr><tr><td><code>Видеокарты</code></td><td><code>толщина_в_слотах NUMERIC(2,1)</code>, <code>tdp DEFAULT 0</code> — для iGPU-сборок</td></tr><tr><td><code>Накопители</code></td><td><code>скорость_чтения_записи JSONB</code> <code>{"read","write"}</code> с CHECK; CHECK на <code>тип</code> (SSD/HDD) и <code>интерфейс</code> (M.2/SATA)</td></tr><tr><td><code>БлокиПитания</code></td><td><code>мощность_в_ваттах</code> NOT NULL CHECK &gt; 0 — участвует в правиле 7</td></tr><tr><td><code>Корпуса</code></td><td><code>макс_длина_gpu</code>, <code>макс_высота_кулера</code>, <code>макс_длина_радиатора</code> — участвуют в правилах 4 и 6</td></tr></tbody></table></div>
+<h5>Новые таблицы рыночной части</h5>
+<div class='table-wrap'><table><thead><tr><th>Таблица</th><th>Назначение</th><th>Ключевые ограничения</th></tr></thead><tbody><tr><td><code>Пользователи</code></td><td>Учётные записи</td><td><code>email CITEXT UNIQUE</code>, <code>роль user_role</code></td></tr><tr><td><code>ОбновительныеТокены</code></td><td>Refresh-токены</td><td><code>token_hash UNIQUE</code>, <code>отозван BOOLEAN</code></td></tr><tr><td><code>Наличие</code></td><td>Склад, составной PK</td><td><code>CHECK (зарезервировано &lt;= количество)</code></td></tr><tr><td><code>Сборки</code></td><td>Сохранённые сборки</td><td><code>пользователь_id → Пользователи ON DELETE CASCADE</code></td></tr><tr><td><code>Сборка_Компоненты</code></td><td>Состав сборки</td><td><code>CHECK</code> — заполнено <strong>ровно одно</strong> из восьми полей-ссылок</td></tr><tr><td><code>Корзины</code></td><td>Корзина</td><td><code>пользователь_id UNIQUE</code> — одна корзина на пользователя</td></tr><tr><td><code>Корзина_Позиции</code></td><td>Позиции корзины</td><td>тот же CHECK «ровно одна ссылка»</td></tr><tr><td><code>Заказы</code></td><td>Заказы</td><td><code>номер UNIQUE</code>, CHECK на адрес при доставке курьером</td></tr><tr><td><code>Заказ_Позиции</code></td><td>Позиции заказа</td><td><strong>снимок</strong> <code>название</code> и <code>цена_за_единицу</code></td></tr><tr><td><code>Промокоды</code></td><td>Промокоды</td><td><code>код UNIQUE</code>, <code>CHECK (действует_по &gt;= действует_с)</code>, <code>CHECK (применено &lt; макс_применений)</code></td></tr><tr><td><code>Отзывы</code></td><td>Отзывы</td><td><code>оценка SMALLINT CHECK 1..5</code>, UNIQUE на (автор, товар)</td></tr><tr><td><code>ЖурналДействийАгента</code></td><td>Аудит MCP</td><td><code>аргументы JSONB</code> с замаскированными PII</td></tr></tbody></table></div>
+<h3>Ключевые проектные решения</h3>
+<h5>Почему состав позиции хранится восемью ссылками, а не одним полем «тип + id»</h5>
+<p>Наивный вариант — хранить пару <code>(тип_компонента, идентификатор_компонента)</code>. Он компактнее, но <strong>не обеспечивает ссылочную целостность</strong>: база данных не может проверить, что видеокарта с <code>id = 17</code> действительно существует в таблице <code>Видеокарты</code>. При удалении товара останется «висячая» ссылка.</p>
+<p>Выбран подход восьми nullable-колонок со ссылками на восемь таблиц — он уже применён в проекте для <code>ГотовыеКонфигурации</code>, поэтому решение согласовано с существующим кодом. Ограничение «заполнено ровно одно поле» закреплено CHECK-констрейнтом:</p>
+<pre class="lang-sql"><code>CONSTRAINT chk_single_cart_component CHECK (
+    (CASE WHEN процессор_id         IS NOT NULL THEN 1 ELSE 0 END) +
+    (CASE WHEN материнская_плата_id IS NOT NULL THEN 1 ELSE 0 END) +
+    … всего 8 слагаемых …
+) = 1</code></pre>
+<h5>Почему цена позиции заказа — это снимок</h5>
+<p>В таблице <code>Заказ_Позиции</code> хранятся <code>название</code> и <code>цена_за_единицу</code>, зафиксированные в момент оформления. Без этого снимка изменение цены в каталоге задним числом переписало бы историю заказов: покупатель, оплативший 1299 BYN, увидел бы в своём заказе новую цену 1599 BYN, а финансовый отчёт перестал бы сходиться.</p>
+<p>Цена <strong>готовой конфигурации</strong>, наоборот, не хранится вовсе — она вычисляется представлением <code>v_готовые_конфигурации</code> как сумма цен компонентов. Это избавляет от рассинхронизации.</p>
+<h5>Статусная машина заказа в базе данных</h5>
+<p>Разрешённые переходы вынесены в справочную таблицу <code>ПереходыСтатузовЗаказа(из_status, в_status, роль_кто)</code>:</p>
+<div class='table-wrap'><table><thead><tr><th>Из</th><th>В</th><th>Кто может</th></tr></thead><tbody><tr><td>Новый</td><td>В обработке</td><td>менеджер</td></tr><tr><td>Новый</td><td>Отменён</td><td>покупатель</td></tr><tr><td>В обработке</td><td>Собран</td><td>менеджер</td></tr><tr><td>В обработке</td><td>Отменён</td><td>покупатель</td></tr><tr><td>Собран</td><td>Отправлен</td><td>менеджер</td></tr><tr><td>Отправлен</td><td>Доставлен</td><td>менеджер</td></tr></tbody></table></div>
+<p>Один справочник используют три компонента: REST-сервис <code>OrderService</code>, MCP-инструмент <code>set_order_status</code> и триггер БД <code>trg_order_cancel_guard</code>. Изменение правил отмены требует правки одной таблицы, а не трёх мест в коде.</p>
+<h5>Триггер, защищающий от отмены отправленного заказа</h5>
+<pre class="lang-sql"><code>CREATE OR REPLACE FUNCTION fn_order_cancel_guard() RETURNS trigger AS $$
+BEGIN
+    IF NEW.статус = 'Отменён' AND OLD.статус IN ('Собран','Отправлен','Доставлен') THEN
+        RAISE EXCEPTION 'Недопустимый переход: заказ №% в статусе "%" нельзя отменить',
+            OLD.номер, OLD.статус USING ERRCODE = 'check_violation';
+    END IF;
+    NEW.обновлён_в = now();
+    RETURN NEW;
+END; $$ LANGUAGE plpgsql;</code></pre>
+<p>Даже прямой <code>UPDATE "Заказы" SET статус = 'Отменён'</code> в консоли БД будет отклонён. Это последний рубеж: правило продублировано в сервисе заказов и в MCP-инструменте <code>cancel_order</code>.</p>
+<h5>Типы данных под требования предметной области</h5>
+<div class='table-wrap'><table><thead><tr><th>Решение</th><th>Обоснование</th></tr></thead><tbody><tr><td><code>CITEXT</code> для e-mail</td><td>Регистронезависимость: <code>Anna@.by</code> и <code>anna@by</code> — один пользователь</td></tr><tr><td><code>JSONB</code> для составных характеристик</td><td><code>ядра_потоки</code>, <code>частота</code>, <code>скорость_чтения_записи</code> — объекты с фиксированной структурой; JSONB даёт проверку структуры через CHECK и GIN-индексы, но не раздувает таблицу</td></tr><tr><td>ENUM-типы для справочников</td><td><code>component_type</code>, <code>user_role</code>, <code>order_status</code> — закрытые множества значений; ENUM защищает от опечаток лучше, чем <code>VARCHAR</code> + словарь</td></tr><tr><td><code>NUMERIC(2,1)</code> для толщины видеокарты</td><td>Значение вида 2.5 слота — <code>NUMERIC</code>, а не <code>INTEGER</code></td></tr><tr><td>Целочисленный <code>INTEGER</code> для денег</td><td>BYN без копеек; <code>NUMERIC</code> избыточен, <code>FLOAT</code> недопустим для денег</td></tr></tbody></table></div>
+<h3>Файлы физической модели</h3>
+<div class='table-wrap'><table><thead><tr><th>Файл</th><th>Содержимое</th></tr></thead><tbody><tr><td><a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/db/01_schema.sql"><code>db/01_schema.sql</code></a></td><td>Расширения (citext, pgcrypto, pg_trgm), 7 ENUM-типов, 8 таблиц каталога, <code>ГотовыеКонфигурации</code>, <code>КонфигурацияНакопители</code></td></tr><tr><td><a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/db/02_marketplace.sql"><code>db/02_marketplace.sql</code></a></td><td>11 новых таблиц рыночной части</td></tr><tr><td><a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/db/03_indexes_constraints.sql"><code>db/03_indexes_constraints.sql</code></a></td><td>30+ индексов, 3 CHECK-констрейнта «ровно одна ссылка», справочник переходов, 4 триггера, функция генерации номера заказа</td></tr><tr><td><a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/db/04_views.sql"><code>db/04_views.sql</code></a></td><td><code>v_каталог</code>, <code>v_остатки</code>, <code>v_готовые_конфигурации</code>, <code>v_заказы_детально</code>, функция <code>fn_check_compatibility</code></td></tr><tr><td><a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/db/05_seed.sql"><code>db/05_seed.sql</code></a></td><td>Демонстрационные данные + синхронизация последовательностей SERIAL</td></tr><tr><td><a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/db/06_check.sql"><code>db/06_check.sql</code></a></td><td><strong>Проверочный скрипт из 14 проверок</strong> — демонстрация модели на защите</td></tr></tbody></table></div>
+<h5>Представление <code>v_каталог</code> — решение проблемы гетерогенности</h5>
+<p>Восемь таблиц каталога объединены в единое представление с общим набором колонок, а специфичные характеристики собраны в JSONB:</p>
+<pre class="lang-sql"><code>CREATE OR REPLACE VIEW v_каталог AS
+    SELECT 'cpu'::component_type AS тип, id, название, производитель,
+           цена, фото_url, tdp,
+           jsonb_build_object('сокет', сокет, 'ядра', ядра_потоки -&gt; 'cores',
+                              'потоки', ядра_потоки -&gt; 'threads', …) AS характеристики,
+           создан_в
+      FROM "Процессоры"
+UNION ALL
+    SELECT 'motherboard', id, название, NULL, цена, фото_url, NULL,
+           jsonb_build_object('сокет', сокет, 'тип_памяти', тип_памяти, …), создан_в
+      FROM "МатеринскиеПлаты"
+UNION ALL …</code></pre>
+<p>Это позволяет отдавать каталог одной конечной точкой <code>GET /catalog/components?type=gpu</code> и при этом сохранить специализацию внутри модели. Разворачивание вложенного JSONB в плоские ключи («ядра», «потоки», «турбо_частота») выполняется в сервисе, чтобы клиенту не приходилось знать структуру хранения.</p>
+<h5>Функция <code>fn_check_compatibility</code> — 8 правил в базе</h5>
+<p>Все правила проверки совместимости реализованы <strong>один раз</strong> в PL/pgSQL-функции и доступны как из REST-сервиса, так и для прямых запросов:</p>
+<pre class="lang-sql"><code>SELECT * FROM fn_check_compatibility(1, 2, 4, 3, 5, ARRAY[7]::int[], 6, 8);
+-- уровень  | код                    | сообщение
+-- error    | PSU_INSUFFICIENT       | Требуется минимум 794 Вт …
+-- warning  | PSU_LOW_HEADROOM       | Запас мощности БП менее 15 %</code></pre>
+<p>Правила (названия кодов совпадают с кодами в MCP-сервере и в OpenAPI):</p>
+<ol><li><code>SOCKET_MISMATCH</code> — сокет процессора и платы;</li><li><code>MEMORY_TYPE_MISMATCH</code> — тип памяти;</li><li><code>FORM_FACTOR_MISMATCH</code> — иерархия форм-факторов;</li><li><code>GPU_TOO_LONG</code> — длина видеокарты;</li><li><code>COOLER_TDP_TOO_LOW</code> — тепловая мощность охлаждения;</li><li><code>COOLER_TOO_TALL</code> / <code>RADIATOR_TOO_LONG</code> — габариты охлаждения;</li><li><code>PSU_INSUFFICIENT</code> / <code>PSU_LOW_HEADROOM</code> — запас мощности 25 %;</li><li><code>SSD_COUNT</code> / <code>HDD_COUNT</code> — состав накопителей.</li></ol>
+<h3>Применение и проверка модели</h3>
+<p>Модель разворачивается автоматически: каталог <code>db/</code> смонтирован в <code>/docker-entrypoint-initdb.d</code>, поэтому все шесть скриптов выполняются по алфавиту при первом запуске контейнера <code>postgres</code>.</p>
+<pre class="lang-bash"><code># 1. Поднять всё окружение (БД, кэш, backend, веб)
+cd ЛР4/infra
+docker compose up -d --build
+
+# 2. Прогнать проверочный скрипт из 14 проверок
+docker compose exec -T postgres psql -U pchelper -d pchelper \
+    -f /docker-entrypoint-initdb.d/06_check.sql</code></pre>
+<p>Если нужно развернуть схему вручную, без Docker:</p>
+<pre class="lang-bash"><code># Порядок важен: 01 создаёт типы и таблицы, 03 — ограничения и триггеры,
+# 04 — представления и функцию проверки совместимости, 05 — данные
+psql postgresql://postgres:pchelper@localhost:5432/postgres -f db/01_schema.sql
+psql postgresql://postgres:pchelper@localhost:5432/postgres -f db/02_marketplace.sql
+psql postgresql://postgres:pchelper@localhost:5432/postgres -f db/03_indexes_constraints.sql
+psql postgresql://postgres:pchelper@localhost:5432/postgres -f db/04_views.sql
+psql postgresql://postgres:pchelper@localhost:5432/postgres -f db/05_seed.sql</code></pre>
+<h5>Фактические результаты проверок</h5>
+<p>Ниже — реальный вывод на развёрнутом окружении, а не ожидаемый.</p>
+<p><strong>Проверка 1 — единый каталог возвращает все 8 типов:</strong></p>
+<pre><code>     тип     | количество
+-------------+------------
+ cpu         |          3
+ motherboard |          3
+ ram         |          2
+ cooling     |          3
+ gpu         |          2
+ storage     |          2
+ psu         |          2
+ case        |          2
+(8 rows)</code></pre>
+<p><strong>Проверка 2 — цена готовой конфигурации вычисляется, а не хранится:</strong></p>
+<pre><code> id |     название      | цена
+----+-------------------+------
+  1 | Офисный ПК1       | 1985
+  2 | Игровой ПК Radeon | 4268
+  3 | Игровой ПК топ    | 5518
+(3 rows)</code></pre>
+<p><strong>Проверка 4 — заведомо несовместимая сборка (AM5 + LGA1700 + DDR4 + Micro-ATX):</strong></p>
+<pre><code> уровень |         код          |                           сообщение
+---------+----------------------+---------------------------------------------------------------
+ error   | SOCKET_MISMATCH      | Сокет процессора (AM5) не совпадает с сокетом платы (LGA1700)
+ error   | MEMORY_TYPE_MISMATCH | Плата поддерживает DDR5, выбрана память DDR4
+ error   | FORM_FACTOR_MISMATCH | Корпус Micro-ATX не вмещает плату ATX
+(3 rows)</code></pre>
+<p><strong>Проверка 7 — попытка отменить доставленный заказ блокируется триггером:</strong></p>
+<pre><code>ERROR:  Недопустимый переход: заказ №PCH-2026-000004 в статусе "Доставлен" нельзя отменить
+CONTEXT:  PL/pgSQL function fn_order_cancel_guard() line 4 at RAISE</code></pre>
+<p><strong>Проверка 10 — CHECK «ровно одна ссылка на компонент» работает:</strong></p>
+<pre><code>ERROR:  new row for relation "Корзина_Позиции" violates check constraint "chk_single_cart_component"</code></pre>
+<p><strong>Проверка 14 — итоговое состояние схемы:</strong></p>
+<pre><code> индексов | перечислений | триггеров
+----------+--------------+-----------
+       72 |            7 |         4
+(1 row)</code></pre>
+<p>Итого: <strong>22 таблицы, 72 индекса, 7 типов-перечислений, 4 триггера</strong>, применение схемы — без единой ошибки.</p>
+</main>
+<footer>Лабораторная работа № 4 — PCHelper &middot; <a href="https://github.com/AlekseiNarkevich/pchelper-infra">репозиторий</a> &middot; <a href="https://pchelper-infra.onrender.com">развёрнутый сервис</a> &middot; <a href="https://sonarcloud.io/dashboard?id=AlekseiNarkevich_pchelper-infra">SonarCloud</a></footer>
+</body>
+</html>
