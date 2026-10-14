@@ -129,12 +129,18 @@
 <p>Open API, что закрывает требование «ссылка на документацию API в документации проекта».</p>
 <h3>Создание API в сервисе</h3>
 <p>Порядок действий для Bruno (аналогичные шаги для SwaggerHub и Postman):</p>
-<ol><li>Установить Bruno: &lt;https://docs.usebruno.com/get-started/installation&gt;.</li><li>Зарегистрироваться и создать коллекцию <strong>PCHelper API v1</strong>.</li><li><strong>Import → OpenAPI…</strong> → выбрать файл <a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/api/openapi.yaml"><code>api/openapi.yaml</code></a>.</li></ol>
-<p>Bruno построит 41 запрос, сгруппированный по тегам (<code>Служебные</code>, <code>Аутентификация</code>, <code>Каталог</code>, …), с переносом описаний, схем тел и примеров ответов.</p>
-<ol><li>Создать <strong>Environment</strong> с переменными:</li></ol>
+<ol><li>Установить Bruno: &lt;https://docs.usebruno.com/get-started/installation&gt;.</li></ol>
+<p>Учётная запись <strong>не нужна</strong>: Bruno — открытое офлайн-приложение, коллекция лежит на диске в виде обычных файлов и никуда не отправляется.</p>
+<ol><li>Импортировать коллекцию: <strong>Import Collection</strong> → выбрать файл</li></ol>
+<p><code>bruno/pchelper-collection.json</code>. Файл получен из спецификации командой <code>bru import openapi</code> и уже разложен по тегам: 9 папок и 41 запрос с описаниями, схемами тел и примерами ответов. Сама спецификация <a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/api/openapi.yaml"><code>api/openapi.yaml</code></a> остаётся приложенной к коллекции в разделе <strong>API Spec</strong> — по ней Bruno строит mock-сервер.</p>
+<ol><li>Выбрать окружение <strong>Локальная разработка (Docker Compose)</strong>:</li></ol>
 <div class='table-wrap'><table><thead><tr><th>Переменная</th><th>Значение</th></tr></thead><tbody><tr><td><code>baseUrl</code></td><td><code>http://localhost:3001/api/v1</code></td></tr><tr><td><code>accessToken</code></td><td>заполняется автоматически скриптом из ответа <code>login</code></td></tr><tr><td><code>refreshToken</code></td><td>заполняется автоматически</td></tr><tr><td><code>componentId</code>, <code>orderId</code>, <code>buildId</code>, <code>configId</code></td><td>подставляются в тесты</td></tr></tbody></table></div>
-<ol><li>Активировать <strong>Mock-сервер</strong>: <em>Settings → Mock Server → Start</em>.</li></ol>
-<p>Bruno генерирует ответы из схем, объявленных в спецификации.</p>
+<ol><li>Включить mock-сервер: <strong>Preferences → Beta → Mock Server</strong> (в версии</li></ol>
+<p>4.2.1 функция включена по умолчанию и отключается в этом же месте).</p>
+<ol><li>Создать сервер: <strong>Mock Servers → +</strong>, имя <code>PCHelper</code>, источник —</li></ol>
+<p><strong>API Spec</strong>, выбрать подключённый <code>openapi.yaml</code>, затем <strong>Generate from API Spec</strong> — Bruno создаст по одному ответу на каждую операцию и код ответа из спецификации.</p>
+<ol><li><strong>Start Server</strong>. Сервер поднимается на локальном порту, по умолчанию</li></ol>
+<p><code>http://localhost:4000</code>; при занятости порта Bruno подбирает следующий свободный. Облачный адрес вида <code>https://xxxxxxxx.usebruno.com</code> относится к платному тарифу и в этой лабораторной работе не используется.</p>
 <h3>Тестирование спецификации на Mock-сервере</h3>
 <h5>Протокол тестирования</h5>
 <p>Каждый тест-кейс выполняется в пять шагов:</p>
