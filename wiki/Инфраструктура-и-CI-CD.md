@@ -267,7 +267,7 @@ $ docker compose --profile test run --rm tests
 # fail  0
 
 $ cd ЛР4/mcp && pytest -q
-39 passed in 2.12s
+39 passed
 ```
 
 **Механизм блокировки сборки** в [`.github/workflows/ci.yml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/.github/workflows/ci.yml):

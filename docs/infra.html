@@ -145,7 +145,7 @@ $ docker compose --profile test run --rm tests
 # fail  0
 
 $ cd ЛР4/mcp &amp;&amp; pytest -q
-39 passed in 2.12s</code></pre>
+39 passed</code></pre>
 <p><strong>Механизм блокировки сборки</strong> в <a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/.github/workflows/ci.yml"><code>.github/workflows/ci.yml</code></a>:</p>
 <pre class="lang-yaml"><code># build-and-push объявлен через needs: [ test, sonar ].
 # Пока хотя бы один из этих этапов не завершился успешно,
