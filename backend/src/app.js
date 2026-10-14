@@ -66,6 +66,26 @@ export function createApp() {
   // Защищённый админ-модуль: доступ проверяет middleware выше по цепочке.
   app.use('/api/v1/admin', adminRouter);
 
+  // --- Корневой маршрут ---
+  // Без него GET / возвращает 404, и при первом открытии адреса
+  // развёрнутого сервиса кажется, что деплой сломан. Отдаём
+  // короткую «визитку» со списком доступных маршрутов.
+  app.get('/', (req, res) => {
+    res.status(200).json({
+      service: 'PCHelper Infrastructure API',
+      description: 'Учебный стенд задания 6 лабораторной работы № 4',
+      version: process.env.APP_VERSION || '1.0.0',
+      environment: process.env.NODE_ENV || 'development',
+      endpoints: {
+        health: 'GET /api/v1/health',
+        hello: 'GET /api/v1/hello',
+        database: 'GET /api/v1/hello/db',
+        adminOrders: 'GET /api/v1/admin/orders (нужен токен)',
+      },
+      note: 'Спецификация REST API — 39 операций, файл api/openapi.yaml',
+    });
+  });
+
   // --- Единый формат ошибок (требование NFR-09) ---
   // 404: неизвестный маршрут. Express по умолчанию отдал бы HTML-страницу,
   // но клиенту нужен JSON того же вида, что и у остальных ошибок.

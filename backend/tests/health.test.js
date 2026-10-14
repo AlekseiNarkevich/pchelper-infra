@@ -104,6 +104,13 @@ test('требование FR-08: админ-маршрут с верным то
   assert.equal(body.total, 0);
 });
 
+test('корневой адрес отдаёт визитку со списком маршрутов, а не 404', async () => {
+  const { status, body } = await get('/');
+  assert.equal(status, 200);
+  assert.equal(body.service, 'PCHelper Infrastructure API');
+  assert.equal(typeof body.endpoints.health, 'string');
+});
+
 test('несуществующий маршрут возвращает 404 в формате JSON, а не HTML', async () => {
   const { status, body } = await get('/api/v1/не-существует');
   assert.equal(status, 404);
