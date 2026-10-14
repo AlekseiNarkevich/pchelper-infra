@@ -11,7 +11,7 @@
   <h1>API-проекта</h1>
   <p>Задания 3 и 4 — маршруты, конечные точки и их тестирование</p>
 </div></header>
-<nav><div class="wrap"><a href="index.html">Главная</a><a href="requirements.html">Функциональные требования</a><a href="files.html">Файлы приложения</a><a href="db.html">Схема базы данных</a><a href="api.html" class="on">API-проекта</a><a href="api-reference.html">Интерактивная документация</a><a href="mcp.html">MCP-сервер</a><a href="spec.html">Доп. спецификация</a><a href="infra.html">Инфраструктура и CI/CD</a><a href="labs.html">Лабораторные работы</a><a href="presentation.html">Презентация</a></div></nav>
+<nav><div class="wrap"><a href="index.html">Главная</a><a href="requirements.html">Функциональные требования</a><a href="files.html">Файлы приложения</a><a href="db.html">Схема базы данных</a><a href="api.html" class="on">API-проекта</a><a href="mcp.html">MCP-сервер</a><a href="spec.html">Доп. спецификация</a><a href="infra.html">Инфраструктура и CI/CD</a><a href="labs.html">Лабораторные работы</a><a href="presentation.html">Презентация</a></div></nav>
 <main class="wrap">
 <figure><img src="img/05-routes-endpoints.png" alt="Рис. 4 — карта маршрутов и конечных точек" loading="lazy"><figcaption>Рис. 4 — карта маршрутов и конечных точек</figcaption></figure><figure><img src="img/06-usecase-endpoint-mapping.png" alt="Рис. 5 — сопоставление вариантов использования с HTTP-методами" loading="lazy"><figcaption>Рис. 5 — сопоставление вариантов использования с HTTP-методами</figcaption></figure><figure><img src="img/07-api-layers.png" alt="Архитектура слоёв API" loading="lazy"><figcaption>Архитектура слоёв API</figcaption></figure>
 <h3>Соглашения по проектированию</h3>
@@ -104,10 +104,12 @@
 <h3>Открытая спецификация и интерактивная документация</h3>
 <ol><li>Спецификация <a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/api/openapi.yaml"><code>api/openapi.yaml</code></a> хранится рядом с кодом лабораторной</li></ol>
 <p>работы и проверяется линтером Redocly на каждом запуске конвейера.</p>
-<ol><li>В CI тот же файл собирается в статическую HTML-страницу командой</li></ol>
-<p><code>redocly build-docs</code> (раздел 6.8.2) — получается интерактивная документация Redoc, где каждая операция раскрывается с примерами запроса, примерами ответа, схемами и перечнем кодов.</p>
-<ol><li>Собранная страница публикуется как <code>docs/api-reference.html</code> и</li></ol>
-<p>открывается на сайте GitHub Pages по постоянному адресу <code>https://alekseinarkevich.github.io/pchelper-infra/api-reference.html</code>.</p>
+<ol><li>Из того же файла собирается интерактивная документация Redoc, где</li></ol>
+<p>каждая операция раскрывается с примерами запроса, примерами ответа, схемами и перечнем кодов ответа:</p>
+<pre class="lang-bash"><code>   npx @redocly/cli build-docs api/openapi.yaml --output api/dist/index.html</code></pre>
+<p>Эту же команду выполняет конвейер на этапе «Генерация Swagger» (раздел 6.8.2); собранные файлы складываются в артефакт <code>swagger-docs</code> прогона.</p>
+<ol><li>Собранная страница намеренно <strong>не коммитится в репозиторий</strong>: это</li></ol>
+<p>результат сборки, а не исходный код. Ветка с файлом на 640 КБ раздувала отчёт SonarCloud на новом коде и роняла Quality Gate, поэтому документация собирается по требованию, а хранится как артефакт прогона.</p>
 <ol><li>Backend намеренно не занимается документацией: в этом учебном стенде</li></ol>
 <p>он минимальное приложение «Hello World», нужное только для проверки работоспособности окружения. Код магазина в стенд не переносился, а документация к нему публикуется из спецификации — так она не может разойтись с описанием API.</p>
 <ol><li>Описание ресурсов и примеры запросов продублированы в документации</li></ol>
