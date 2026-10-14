@@ -16,6 +16,101 @@
 <figure><img src="img/13-app-files.png" alt="Диаграмма файлов приложения PCHelper" loading="lazy"><figcaption>Диаграмма файлов приложения PCHelper</figcaption></figure>
 <h3>Диаграмма файлов приложения</h3>
 <p><strong>Файл:</strong> <a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/13-app-files.puml"><code>diagrams/plantuml/13-app-files.puml</code></a></p>
+<h2>Что где лежит</h2>
+
+<p>Диаграмма выше показывает <strong>целевой вид проекта</strong> —
+интернет-магазин из четырёх репозиториев. Этот репозиторий — учебный
+стенд лабораторной работы № 4: здесь лежат те части, которые удалось
+собрать и проверить целиком. Ниже — что именно в нём находится.</p>
+
+<div class='table-wrap'><table>
+<thead><tr><th>Каталог</th><th>Назначение</th><th>Ключевые файлы</th></tr></thead>
+<tbody>
+<tr><td><code>backend/</code></td>
+    <td>Серверное приложение: Node.js 20 + Express. Приложение
+        «Hello World» и проверка готовности окружения — пункт 9
+        задания 6.</td>
+    <td><code>src/server.js</code> — точка входа и healthcheck;
+        <code>src/app.js</code> — маршруты, обработка ошибок;
+        <code>src/routes/hello.js</code>, <code>admin.js</code>;
+        <code>tests/</code> — 9 автоматических тестов;
+        <code>Dockerfile</code> — многостадийная сборка</td></tr>
+<tr><td><code>frontend/</code></td>
+    <td>Веб-контейнер: nginx с страницей проверки, что окружение
+        поднялось и backend отвечает.</td>
+    <td><code>public/index.html</code>, <code>nginx.conf</code>,
+        <code>Dockerfile</code></td></tr>
+<tr><td><code>mcp/</code></td>
+    <td>MCP-сервер задания 5: Python 3.12 и MCP Python SDK.
+        Читает ту же схему данных, что и backend.</td>
+    <td><code>server.py</code> — регистрация примитивов;
+        <code>services.py</code> — вся бизнес-логика;
+        <code>audit.py</code> — журнал действий агента и маскирование PII;
+        <code>db.py</code>, <code>healthcheck.py</code>;
+        <code>schema.sql</code>, <code>seed.sql</code>;
+        <code>tests/</code> — 39 тестов;
+        <code>README.md</code> — развёртывание и примеры запросов;
+        <code>requirements.lock</code> — зависимости образа с хешами</td></tr>
+<tr><td><code>db/</code></td>
+    <td>Физическая модель базы данных — задание 2. 22 таблицы,
+        72 индекса, 4 триггера.</td>
+    <td><code>01_schema.sql</code> … <code>05_seed.sql</code>,
+        <code>06_check.sql</code> — 14 проверок модели</td></tr>
+<tr><td><code>api/</code></td>
+    <td>Спецификация API — задания 3 и 4. Единственный источник
+        правды: из неё собирается и бэкенд, и документация.</td>
+    <td><code>openapi.yaml</code> — 39 операций OpenAPI 3.0.3</td></tr>
+<tr><td><code>diagrams/</code></td>
+    <td>Исходники диаграмм PlantUML и готовые PNG.</td>
+    <td><code>plantuml/*.puml</code> — 14 диаграмм</td></tr>
+<tr><td><code>docs/</code></td>
+    <td>Сайт документации — этот сайт. Публикуется на GitHub Pages
+        из папки <code>docs</code> ветки <code>main</code>.</td>
+    <td>10 страниц, <code>style.css</code>, <code>img/</code> — 14 PNG</td></tr>
+<tr><td><code>wiki/</code></td>
+    <td>Исходники страниц вики. Заливаются в репозиторий вики
+        <code>pchelper-infra.wiki.git</code>.</td>
+    <td>9 страниц по требованиям методички</td></tr>
+<tr><td><code>.github/</code></td>
+    <td>Непрерывная интеграция.</td>
+    <td><code>workflows/ci.yml</code> — конвейер из шести этапов</td></tr>
+<tr><td><a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/sonar-project.properties"><code>sonar-project.properties</code></a></td>
+    <td>Настройка проверки качества кода для SonarQube и SonarCloud.</td>
+    <td>область анализа, пути OpenAPI, ожидание Quality Gate</td></tr>
+<tr><td><a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/docker-compose.yml"><code>docker-compose.yml</code></a></td>
+    <td>Локальное окружение из пяти контейнеров одной командой
+        <code>docker compose up -d --build</code>.</td>
+    <td>postgres, redis, api, web, mcp</td></tr>
+</tbody></table></div>
+
+<h2>Как связаны части</h2>
+
+<div class='table-wrap'><table>
+<thead><tr><th>Связь</th><th>Что происходит</th></tr></thead>
+<tbody>
+<tr><td><code>backend</code> → <code>db/</code></td>
+    <td>Репозитории обращаются к готовым DDL-скриптам. Схема базы
+        описана один раз и не может разойтись с кодом.</td></tr>
+<tr><td><code>mcp</code> → <code>db/</code></td>
+    <td>Сервер MCP читает ту же схему, что и бэкенд: имена таблиц
+        совпадают, расхождение исключено.</td></tr>
+<tr><td><code>frontend</code> → <code>backend</code></td>
+    <td>nginx отдаёт статику и проксирует запросы <code>/api</code>
+        на контейнер бэкенда по внутренней сети Docker Compose.</td></tr>
+<tr><td><a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/api/openapi.yaml"><code>api/openapi.yaml</code></a> → всё</td>
+    <td>Спецификация API проверяется линтером, из неё собирается
+        статическая документация. Код и документация не расходятся.</td></tr>
+<tr><td><a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/.github/workflows/ci.yml"><code>.github/workflows/ci.yml</code></a> → всё</td>
+    <td>Конвейер проверяет код, анализирует качество, собирает
+        образы и разворачивает сервис — но только после зелёного
+        Quality Gate.</td></tr>
+</tbody></table></div>
+
+<p class="note">Часть модулей из диаграммы (React-клиент, модули
+<code>controllers</code> и <code>services</code>, нативное
+Android-приложение) появится при переносе стенда в курсовую
+работу. Здесь они намеренно не показаны: в лабораторной работе
+они не реализованы, и выдавать план за сделанное не нужно.</p>
 </main>
 <footer>Лабораторная работа № 4 — PCHelper &middot; <a href="https://github.com/AlekseiNarkevich/pchelper-infra">репозиторий</a> &middot; <a href="https://pchelper-infra.onrender.com">развёрнутый сервис</a> &middot; <a href="https://sonarcloud.io/dashboard?id=AlekseiNarkevich_pchelper-infra">SonarCloud</a></footer>
 </body>
