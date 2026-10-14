@@ -48,10 +48,12 @@ COPY requirements.txt ./
 RUN pip install --no-cache-dir --only-binary :all: -r requirements.txt
 
 # --- Код сервера ----------------------------------------------------
+# Файлы копируются от root и остаются доступными пользователю mcp
+# только на чтение: --chown=mcp:mcp дал бы ему право их менять,
+# а это лишний вектор атаки (SonarCloud S6470).
 # Файлы перечислены явно, а не копируются рекурсивно: так в образ
-# не могут случайно попасть артефакты локальной разработки
-# (SonarCloud S6470). Список соответствует содержимому каталога.
-COPY --chown=mcp:mcp audit.py db.py healthcheck.py \
+# не могут случайно попасть артефакты локальной разработки.
+COPY audit.py db.py healthcheck.py \
      schema.sql seed.sql server.py services.py ./
 
 USER mcp

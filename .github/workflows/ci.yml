@@ -75,9 +75,9 @@ jobs:
     # миграция ломает уже отлаженные сборки.
     runs-on: ubuntu-24.04
     steps:
-      - uses: fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09@actions/checkout  # v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
-      - uses: a0853c24544627f65ddf259abe73b1d18a591444@actions/setup-node  # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
         with:
           node-version: 20
           cache: npm
@@ -114,9 +114,9 @@ jobs:
     needs: lint
 
     steps:
-      - uses: fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09@actions/checkout  # v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
-      - uses: a0853c24544627f65ddf259abe73b1d18a591444@actions/setup-node  # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
         with:
           node-version: 20
           cache: npm
@@ -134,7 +134,7 @@ jobs:
 
       - name: Отчёт о покрытии
         if: always()
-        uses: 330a01c490aca151604b8cf639adc76d48f6c5d4@actions/upload-artifact  # v5
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5
         with:
           name: coverage
           path: backend/coverage/
@@ -155,9 +155,9 @@ jobs:
     needs: lint
 
     steps:
-      - uses: fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09@actions/checkout  # v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
-      - uses: a0853c24544627f65ddf259abe73b1d18a591444@actions/setup-node  # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
         with:
           node-version: 20
 
@@ -177,7 +177,7 @@ jobs:
           redocly build-docs api/dist/openapi.bundled.yaml \
             --output api/dist/swagger.json
 
-      - uses: 330a01c490aca151604b8cf639adc76d48f6c5d4@actions/upload-artifact  # v5
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5
         with:
           name: swagger-docs
           path: api/dist/
@@ -207,17 +207,17 @@ jobs:
       checks: write          # отчёт SonarCloud публикуется как check
 
     steps:
-      - uses: fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09@actions/checkout  # v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
         with:
           fetch-depth: 0 # полная история коммитов для blame
 
-      - uses: a0853c24544627f65ddf259abe73b1d18a591444@actions/setup-node  # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444  # v5
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: backend/package-lock.json
 
-      - uses: b6effb05e454b25005698d916606bdc6ffcbf961@actions/setup-java  # v5
+      - uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961  # v5
         with:
           distribution: temurin
           java-version: '17'
@@ -237,13 +237,13 @@ jobs:
           echo "Токен SonarQube найден"
 
       - name: Загрузить отчёт о покрытии
-        uses: 634f93cb2916e3fdff6788551b99b062d0335ce0@actions/download-artifact  # v5
+        uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
         with:
           name: coverage
           path: backend/coverage
 
       - name: SonarScanner — анализ и ожидание Quality Gate
-        uses: fd88b7d7ccbaefd23d8f36f73b59db7a3d246602@SonarSource/sonarqube-scan-action  # v6
+        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602  # v6
         env:
           # ОБЯЗАТЕЛЬНО для SonarCloud. Без этой переменной сканер
           # обращается к http://localhost:9000, где ничего не запущено,
@@ -296,18 +296,18 @@ jobs:
       packages: write
 
     steps:
-      - uses: fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09@actions/checkout  # v5
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09  # v5
 
-      - uses: 8d2750c68a42422c14e847fe6c8ac0403b4cbd6f@docker/setup-buildx-action  # v3
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f  # v3
 
-      - uses: c94ce9fb468520275223c153574b00df6fe4bcc9@docker/login-action  # v3
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9  # v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Образ backend
-        uses: 10e90e3645eae34f1e60eeb005ba3a3d33f178e8@docker/build-push-action  # v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8  # v6
         with:
           context: ./backend
           file: ./backend/Dockerfile
@@ -320,7 +320,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Образ frontend
-        uses: 10e90e3645eae34f1e60eeb005ba3a3d33f178e8@docker/build-push-action  # v6
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8  # v6
         with:
           context: ./frontend
           file: ./frontend/Dockerfile
