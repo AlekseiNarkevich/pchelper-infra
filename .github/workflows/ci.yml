@@ -277,9 +277,6 @@ jobs:
   # -------------------------------------------------------------------
   build-and-push:
     name: Сборка и публикация образов
-    permissions:
-      contents: read
-      packages: write         # проталкивание образов в GHCR
     # Версия Ubuntu зафиксирована явно: метка ubuntu-latest
     # 19 октября 2026 года мигрирует на Ubuntu 26, и каждая
     # миграция ломает уже отлаженные сборки.
@@ -291,6 +288,8 @@ jobs:
       && needs.test.result == 'success'
       && (needs.sonar.result == 'success' || needs.sonar.result == 'skipped')
 
+    # Права на запись выдаются только этому этапу: на уровне workflow
+    # осталось чтение. packages нужен для проталкивания образов в GHCR.
     permissions:
       contents: read
       packages: write
