@@ -1,26 +1,31 @@
-# MCP-сервер PCHelper — блокировка зависимостей
+# MCP-сервер PCHelper — блокировка зависимостей для образа
 #
-# Файл создан автоматически и используется в режиме --require-hashes:
-# pip откажется ставить пакет, хеш которого не совпадает с указанным.
+# Файл собран автоматически и используется в режиме --require-hashes:
+# pip откажется ставить пакет, хеш которого не совпал с указанным.
 # Без этого подменённый на сервере пакет установился бы молча.
+#
+# СЮДА ПОПАДАЕТ ТОЛЬКО РАНТАЙМ. Тестовые пакеты (pytest и его
+# зависимости) в образ не устанавливаются: в рабочем образе
+# тестовому раннеру не место. Для локального запуска тестов
+# используйте requirements.txt - там есть pytest.
 #
 # Как обновить:
 #   1. поправить версии в requirements.txt;
-#   2. пересобрать образ и посмотреть состав пакетов;
-#   3. заново получить хеши и пересобрать этот файл.
+#   2. пересобрать образ и посмотреть состав установленных пакетов;
+#   3. заново получить хеши:
+#        pip download -r requirements.txt -d lock --only-binary :all:
+#        pip hash lock/*.whl
+#      и пересобрать этот файл, исключив тестовые пакеты.
 #
 # Хеши соответствуют колесам для linux/amd64 и Python 3.12 -
 # той платформе, на которой собирается образ.
 #
-# Рабочие пакеты перечислены ниже, служебные можно удалить,
-# если они не нужны: mcp, python-dotenv, pytest.
-
 
 # --- Прямые зависимости ---
 mcp==1.30.0 \
     --hash=sha256:666edb5009503e1047c9d60346a756f94b261f05cc2625f23d41c728ffc484d0
-pytest==8.4.2 \
-    --hash=sha256:872f880de3fc3a5bdc88a11b39c9710c3497a547cfa9320bc3c5e62fbf272e79
+python_dotenv==1.2.4 \
+    --hash=sha256:42269a8a5b3fd54ffa6f3d84b18abed50064717576b4ecf03dc4a55d8aa04fdc
 
 # --- Транзитивные зависимости ---
 annotated_types==0.8.0 \
@@ -47,16 +52,10 @@ httpx_sse==0.4.3 \
     --hash=sha256:0ac1c9fe3c0afad2e0ebb25a934a59f4c7823b60792691f779fad2c5568830fc
 idna==3.20 \
     --hash=sha256:ab7ae7122974553370f0bdb919e1a960b2cd1bc1ef0276416d896db81c14582c
-iniconfig==2.3.1 \
-    --hash=sha256:9121e2c1fdb355232495be3194c8dfe87ccc2d5dee45947b78e68f499790d7a7
 jsonschema==4.26.0 \
     --hash=sha256:d489f15263b8d200f8387e64b4c3a75f06629559fb73deb8fdfb525f2dab50ce
 jsonschema_specifications==2025.9.1 \
     --hash=sha256:98802fee3a11ee76ecaca44429fda8a41bff98b00a0f2838151b113f210cc6fe
-packaging==26.3 \
-    --hash=sha256:d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c
-pluggy==1.6.0 \
-    --hash=sha256:e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746
 pycparser==3.11 \
     --hash=sha256:51d5a8ba2be0bbe440b99d2112604c95bbbc3c2748a64260186c541e1729cd80
 pydantic==2.14.1 \
@@ -65,12 +64,8 @@ pydantic_core==2.50.1 \
     --hash=sha256:93ba4e9d8210d941c200431a56b2c0400b131865947903937ed3ec5404307d2e
 pydantic_settings==2.15.0 \
     --hash=sha256:0ba092c291c94baceb5eff768aa0d56400a457585bc0175925a5a5510303da42
-pygments==2.21.0 \
-    --hash=sha256:2363c69b61c4a97c838da3b130dcd6468f4848992b21a82f2a63ec34377137d9
 pyjwt==2.15.1 \
     --hash=sha256:42d59d631f7768a1028a64c7ff581a9bf7519804daf91fc5b6c56e30eec5e193
-python_dotenv==1.2.4 \
-    --hash=sha256:42269a8a5b3fd54ffa6f3d84b18abed50064717576b4ecf03dc4a55d8aa04fdc
 python_multipart==0.0.32 \
     --hash=sha256:ff6d3f776f16878c894e52e107296ffc890e913c611b1a4ec6c44e2821fe2e23
 referencing==0.37.0 \
