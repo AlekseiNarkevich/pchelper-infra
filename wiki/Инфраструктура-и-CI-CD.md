@@ -19,7 +19,7 @@
 
 **Файл:** [`12-repo-branches.puml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/12-repo-branches.puml)
 
-
+![Рис. 11. Репозитории PCHelper и модель веток](https://alekseinarkevich.github.io/pchelper-infra/img/12-repo-branches.png)
 
 #### Репозитории
 
@@ -121,7 +121,7 @@ pchelper-infra/
 
 **Файл:** [`10-docker-infrastructure.puml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/10-docker-infrastructure.puml)
 
-
+![Рис. 13. Инфраструктура PCHelper на Docker и Docker Compose](https://alekseinarkevich.github.io/pchelper-infra/img/10-docker-infrastructure.png)
 
 Это **уточнение** диаграммы развёртывания из лабораторной работы 3
 (`20-deployment.puml`): в ней появились контейнеры, порты, healthcheck,
@@ -267,7 +267,7 @@ $ docker compose --profile test run --rm tests
 # fail  0
 
 $ cd ЛР4/mcp && pytest -q
-39 passed in 2.12s
+39 passed
 ```
 
 **Механизм блокировки сборки** в [`.github/workflows/ci.yml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/.github/workflows/ci.yml):
@@ -292,7 +292,7 @@ SonarQube через `sonar.javascript.lcov.reportPaths`, поэтому сни�
 
 **Файл:** [`11-cicd-pipeline.puml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/11-cicd-pipeline.puml)
 
-
+![Рис. 14. CI/CD-конвейер PCHelper (GitHub Actions + SonarQube + Docker + Render)](https://alekseinarkevich.github.io/pchelper-infra/img/11-cicd-pipeline.png)
 
 #### Этапы конвейера
 
