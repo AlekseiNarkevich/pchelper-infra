@@ -290,7 +290,7 @@
    проекта — на странице вики «API-проекта» и на странице сайта
    `api.html` (раздел 4.6).
 
-
+![Рис. 17. Интерактивная документация API (Redoc)](https://alekseinarkevich.github.io/pchelper-infra/img/shots/12-api-reference-redoc.png)
 
 ---
 

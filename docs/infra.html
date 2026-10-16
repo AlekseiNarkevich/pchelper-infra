@@ -46,6 +46,7 @@
 <ol><li>Merge в <code>main</code> только при зелёных проверках: тесты, Quality Gate,</li></ol>
 <p>успешная сборка образа.</p>
 <ol><li>Сообщения коммитов — на английском в формате Conventional Commits.</li></ol>
+<p><img src="https://alekseinarkevich.github.io/pchelper-infra/img/shots/29-github-repo-code.png" alt="Рис. 24. Репозиторий pchelper-infra на GitHub"></p>
 <p><strong>Как настраивается (пошагово):</strong></p>
 <ol><li>*Settings → Rulesets → **New ruleset*<strong> → в выпадающем списке </strong>Branch**.</li><li><strong>Ruleset Name:</strong> <code>Protect main</code>.</li><li><strong>Enforcement status:</strong> <code>Active</code> (не <code>Disabled</code> и не <code>Evaluate</code>).</li><li><strong>Rules → Target branches → Include:</strong> добавить <code>refs/heads/main</code>.</li><li>Включить правила:</li></ol>
 <ul><li><strong>Require a pull request before merging</strong> — Required approvals: <code>1</code></li></ul>
@@ -154,6 +155,7 @@ build-and-push:
   needs: [ test, sonar ]
   …                              # тело job: сборка и push в GHCR</code></pre>
 <p>Покрытие кода считается инструментом <strong>c8</strong> (<code>npm run test:coverage</code>) в формате LCOV, выгружается артефактом <code>coverage</code> и передаётся в SonarQube через <code>sonar.javascript.lcov.reportPaths</code>, поэтому снижение покрытия видно в отчёте о качестве. Фактическое покрытие backend — <strong>95,47 % инструкций</strong>, 100 % функций. Сам каталог <code>coverage/</code> исключён из репозитория через <code>.gitignore</code>.</p>
+<p><img src="https://alekseinarkevich.github.io/pchelper-infra/img/shots/36-github-actions-run.png" alt="Рис. 25. Прогон конвейера № 29: все шесть этапов зелёные"></p>
 <h3>CI/CD-конвейер</h3>
 <p><strong>Файл:</strong> <a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/11-cicd-pipeline.puml"><code>diagrams/plantuml/11-cicd-pipeline.puml</code></a></p>
 <p><img src="https://alekseinarkevich.github.io/pchelper-infra/img/11-cicd-pipeline.png" alt="Рис. 14. CI/CD-конвейер PCHelper (GitHub Actions + SonarQube + Docker + Render)"></p>
@@ -273,6 +275,8 @@ sonar.qualitygate.wait=true
 # Таймаут ожидания вердикта в секундах (5 минут)
 sonar.qualitygate.timeout=300</code></pre>
 <p>Обратите внимание на строку <code>sonar.openapi.path</code> — SonarQube умеет анализировать спецификацию Open API и показывает проблемы в контракте.</p>
+<p><img src="https://alekseinarkevich.github.io/pchelper-infra/img/shots/38-sonarcloud-summary.png" alt="Рис. 26. SonarCloud: дашборд проекта и метрики"></p>
+<p><img src="https://alekseinarkevich.github.io/pchelper-infra/img/shots/39-sonarcloud-quality.png" alt="Рис. 27. SonarCloud: Quality Gate в статусе Passed"></p>
 <h3>Развёртывание на бесплатной платформе</h3>
 <p>Требование задания 6, пункт 13.</p>
 <div class='table-wrap'><table><thead><tr><th>Платформа</th><th>Что разворачивается</th><th>Тариф</th></tr></thead><tbody><tr><td><strong>Render</strong></td><td>Backend (контейнер Docker с <code>openapi.yaml</code>, тестами и Swagger)</td><td>Free (засыпает после 15 минут простоя)</td></tr><tr><td><strong>Vercel</strong> или локально</td><td>Веб-приложение React</td><td>Free</td></tr></tbody></table></div>
