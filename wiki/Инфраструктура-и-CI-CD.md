@@ -291,7 +291,6 @@ SonarQube через `sonar.javascript.lcov.reportPaths`, поэтому сни�
 исключён из репозитория через `.gitignore`.
 
 
-
 ![Рис. 25. Прогон конвейера № 29: все шесть этапов зелёные](https://alekseinarkevich.github.io/pchelper-infra/img/shots/36-github-actions-run.png)
 
 ## CI/CD-конвейер
