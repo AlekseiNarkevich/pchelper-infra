@@ -93,7 +93,7 @@ pchelper-infra/
    успешная сборка образа.
 5. Сообщения коммитов — на английском в формате Conventional Commits.
 
-
+![Рис. 24. Репозиторий pchelper-infra на GitHub](https://alekseinarkevich.github.io/pchelper-infra/img/shots/29-github-repo-code.png)
 
 
 
@@ -288,6 +288,10 @@ SonarQube через `sonar.javascript.lcov.reportPaths`, поэтому сни�
 **95,47 % инструкций**, 100 % функций. Сам каталог `coverage/`
 исключён из репозитория через `.gitignore`.
 
+
+
+![Рис. 25. Прогон конвейера № 29: все шесть этапов зелёные](https://alekseinarkevich.github.io/pchelper-infra/img/shots/36-github-actions-run.png)
+
 ## CI/CD-конвейер
 
 **Файл:** [`11-cicd-pipeline.puml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/11-cicd-pipeline.puml)
@@ -471,6 +475,10 @@ sonar.qualitygate.timeout=300
 
 Обратите внимание на строку `sonar.openapi.path` — SonarQube умеет
 анализировать спецификацию Open API и показывает проблемы в контракте.
+
+![Рис. 26. SonarCloud: дашборд проекта и метрики](https://alekseinarkevich.github.io/pchelper-infra/img/shots/38-sonarcloud-summary.png)
+
+![Рис. 27. SonarCloud: Quality Gate в статусе Passed](https://alekseinarkevich.github.io/pchelper-infra/img/shots/39-sonarcloud-quality.png)
 
 ## Развёртывание на бесплатной платформе
 
