@@ -238,6 +238,8 @@ docker compose down        # остановить контейнеры, тома
 docker compose down -v     # остановить и удалить тома с данными
 ```
 
+![Рис. 35. Состояние контейнеров стенда: все четыре healthy](https://alekseinarkevich.github.io/pchelper-infra/img/shots/34-docker-compose-ps.png)
+
 ## Автоматические тесты в CI
 
 Требование задания 6, пункт 6: «Добавить автоматические тесты, чтобы сервер

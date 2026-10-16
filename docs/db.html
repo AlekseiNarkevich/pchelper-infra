@@ -135,6 +135,8 @@ CONTEXT:  PL/pgSQL function fn_order_cancel_guard() line 4 at RAISE</code></pre>
        72 |            7 |         4
 (1 row)</code></pre>
 <p>Итого: <strong>23 таблицы, 72 индекса, 7 типов-перечислений, 4 триггера</strong>, применение схемы — без единой ошибки.</p>
+<p><img src="https://alekseinarkevich.github.io/pchelper-infra/img/shots/06-db-check-1.png" alt="Рис. 30. Проверки 1-5: каталог, вычисление цен, запас БП, несовместимая сборка"> <img src="https://alekseinarkevich.github.io/pchelper-infra/img/shots/06-db-check-2.png" alt="Рис. 31. Проверки 6-12: переходы статуса, запрет отмены, CHECK, снимок цены"> <img src="https://alekseinarkevich.github.io/pchelper-infra/img/shots/06-db-check-3.png" alt="Рис. 32. Проверки 13-14: журнал агента и итоговые счётчики"></p>
+<p><img src="https://alekseinarkevich.github.io/pchelper-infra/img/shots/07-cancel-guard.png" alt="Рис. 33. Запрет отмены доставленного заказа на уровне базы данных"></p>
 </main>
 <footer>Лабораторная работа № 4 — PCHelper &middot; <a href="https://github.com/AlekseiNarkevich/pchelper-infra">репозиторий</a> &middot; <a href="https://pchelper-infra.onrender.com">развёрнутый сервис</a> &middot; <a href="https://sonarcloud.io/dashboard?id=AlekseiNarkevich_pchelper-infra">SonarCloud</a></footer>
 </body>
