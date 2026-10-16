@@ -130,6 +130,7 @@ pchelper-web        pchelper/web:1.0.0   web        Up 16 seconds (healthy)   0.
 <p>Остановка и удаление:</p>
 <pre class="lang-bash"><code>docker compose down        # остановить контейнеры, тома останутся
 docker compose down -v     # остановить и удалить тома с данными</code></pre>
+<p><img src="https://alekseinarkevich.github.io/pchelper-infra/img/shots/34-docker-compose-ps.png" alt="Рис. 35. Состояние контейнеров стенда: все четыре healthy"></p>
 <h3>Автоматические тесты в CI</h3>
 <p>Требование задания 6, пункт 6: «Добавить автоматические тесты, чтобы сервер CI перед сборкой выполнял тесты и формировал сборку только после их прохождения».</p>
 <div class='table-wrap'><table><thead><tr><th>Группа</th><th>Что проверяет</th><th>Файл</th></tr></thead><tbody><tr><td>Юнит-тесты API</td><td><code>/health</code>, <code>/hello</code>, <code>/hello/db</code>, 403 без роли, 200 с ролью, 404 в JSON-формате</td><td><code>infra/backend/tests/health.test.js</code> — <strong>8 тестов</strong></td></tr><tr><td>Smoke-тесты в контейнере</td><td>Те же маршруты, но через сеть Docker Compose и реальный контейнер</td><td><code>infra/backend/tests/smoke.test.js</code> — <strong>5 тестов</strong></td></tr><tr><td>MCP</td><td>39 юнит-тестов доменной логики</td><td><code>mcp/tests/test_services.py</code></td></tr><tr><td><strong>Итого</strong></td><td><strong>52 автоматических теста</strong></td><td></td></tr></tbody></table></div>
