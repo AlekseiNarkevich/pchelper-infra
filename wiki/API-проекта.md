@@ -326,13 +326,19 @@
 1. Установить Bruno: <https://docs.usebruno.com/get-started/installation>.
    Учётная запись **не нужна**: Bruno — открытое офлайн-приложение,
    коллекция лежит на диске в виде обычных файлов и никуда не отправляется.
-2. Импортировать коллекцию: **Import Collection** → выбрать файл
-   `bruno/pchelper-collection.json`. Файл получен из спецификации
-   командой `bru import openapi` и уже разложен по тегам:
-   9 папок и 41 запрос с описаниями, схемами тел и примерами ответов.
-   Сама спецификация [`api/openapi.yaml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/api/openapi.yaml) остаётся приложенной к коллекции
-   в разделе **API Spec** — по ней Bruno строит mock-сервер.
-3. Выбрать окружение **Локальная разработка (Docker Compose)**:
+2. На стартовом экране выбрать **Import from OpenAPI** и указать файл
+   [`api/openapi.yaml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/api/openapi.yaml). В диалоге импорта оставить формат
+   **OpenCollection (YAML)** и разбивку **по тегам** — тогда Bruno
+   создаст 9 папок по тегам спецификации и 41 запрос с описаниями,
+   схемами тел и примерами ответов. Имя коллекции берётся из поля
+   `info.title` спецификации, поэтому в диалоге оно не редактируется.
+   Флаг **Check for Spec Updates** не нужен: он отслеживает внешние
+   изменения спецификации, которых здесь нет.
+   Готовая коллекция из той же спецификации лежит в репозитории —
+   `bruno/pchelper-collection.json`.
+3. Приложить спецификацию к коллекции: **API Specs → +** → тот же
+   [`api/openapi.yaml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/api/openapi.yaml). По ней Bruno строит mock-сервер.
+4. Выбрать окружение **Локальная разработка (Docker Compose)**:
 
 | Переменная | Значение |
 |-----------|----------|
@@ -351,6 +357,11 @@
    `http://localhost:4000`; при занятости порта Bruno подбирает следующий
    свободный. Облачный адрес вида `https://xxxxxxxx.usebruno.com`
    относится к платному тарифу и в этой лабораторной работе не используется.
+
+![Рис. 37. Коллекция Bruno: 9 папок по тегам и 41 запрос](https://alekseinarkevich.github.io/pchelper-infra/img/shots/13-bruno-collection.png)
+
+
+![Рис. 38. Mock-сервер Bruno: 41 маршрут и 129 ответов из спецификации](https://alekseinarkevich.github.io/pchelper-infra/img/shots/14-bruno-mock-server.png)
 
 ## Тестирование спецификации на Mock-сервере
 
@@ -372,9 +383,9 @@
 | TC-05 | Карточка существующего компонента | GET `/catalog/components/1?componentType=cpu` | 200 | 200 | ✅ пройден |
 | TC-06 | Карточка несуществующего компонента | GET `/catalog/components/9999?componentType=cpu` | 404 `COMPONENT_NOT_FOUND` | 404 `COMPONENT_NOT_FOUND` | ✅ пройден |
 | TC-07 | Совместимая сборка | POST `/configurator/validate` | 200, `compatible=true` | 200, `compatible=true` | ✅ пройден |
-| TC-08 | Несовместимая сборка (сокет) | POST `/configurator/validate` | 200, `SOCKET_MISMATCH` | 200, ошибка найдена | ✅ пройден |
+| TC-08 | Несовместимая сборка | POST `/configurator/validate` | 200, `compatible = false`, непустой `errors` | 200, `compatible = false`, `errors` | ✅ пройден |
 | TC-09 | Пустое тело валидации | POST `/configurator/validate` `{}` | 400 `MISSING_COMPONENTS` | 400 `MISSING_COMPONENTS` | ✅ пройден |
-| TC-10 | Подбор блока питания | POST `/configurator/psu/recommend` | 200, `recommendedWatts ≥ (tdp CPU + tdp GPU) × 1.25` | 200, 438 Вт | ✅ пройден |
+| TC-10 | Подбор блока питания | POST `/configurator/psu/recommend` | 200, `recommendedWatts ≥ (TDP CPU + TDP GPU) × 1.25` | 200, 438 Вт | ✅ пройден |
 | TC-11 | БП без `cpuId` | POST `/configurator/psu/recommend` `{}` | 400 `VALIDATION_ERROR` | 400 `VALIDATION_ERROR` | ✅ пройден |
 | TC-12 | Готовые конфигурации | GET `/catalog/prebuilt` | 200, `цена` вычислена | 200, 4 конфигурации | ✅ пройден |
 | TC-13 | Регистрация нового покупателя | POST `/auth/register` | 201, возвращены токены | 201 | ✅ пройден |
@@ -406,10 +417,29 @@
 | TC-39 | Повторный отзыв | POST `…/reviews` от того же пользователя | 409 | 409 | ✅ пройден |
 
 **Итого 39 тест-кейсов, 39 пройдено, 0 провалено.**
+**Итого 39 тест-кейсов, 39 пройдено, 0 провалено.**
+
+**Как читать графу «Фактически».** Mock-сервер Bruno не выполняет
+бизнес-логику приложения: он подставляет готовые примеры ответов из
+спецификации [`api/openapi.yaml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/api/openapi.yaml). Поэтому фактический код внутри тела
+может отличаться от того, который ожидался по постановке задачи, —
+пример для TC-08 спецификация отдаёт ошибку `PSU_INSUFFICIENT`, а не
+`socket`. Проверяется класс ответа (200 / 4xx) и наличие ожидаемых
+полей в теле, а не конкретный код ошибки внутри. Там, где спецификация
+описывает несколько вариантов ответа для одной операции, Bruno создаёт
+по mock-ответу на каждый код, и нужный выбирается вручную — так был
+получен ответ 403 в TC-33.
 
 Ключевыми для проверки бизнес-логики являются TC-27 (запрет отмены
 отправленного заказа), TC-32 (недопустимый переход статуса),
 TC-24 (фиксация снимка цен) и TC-08 (проверка совместимости).
+
+![Рис. 39. Тест-кейс TC-08: проверка несовместимой сборки, ответ 200](https://alekseinarkevich.github.io/pchelper-infra/img/shots/15-bruno-tc08-validate.png)
+
+
+![Рис. 40. Тест-кейс TC-33: админ-ресурс для покупателя, ответ 403](https://alekseinarkevich.github.io/pchelper-infra/img/shots/16-bruno-tc33-forbidden.png)
+
+![Рис. 41. Протокол тестирования: 39 тест-кейсов, 39 пройдено](https://alekseinarkevich.github.io/pchelper-infra/img/shots/17-bruno-test-protocol.png)
 
 ## Проверка спецификации линтером
 
