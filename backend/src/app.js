@@ -82,7 +82,7 @@ export function createApp() {
         database: 'GET /api/v1/hello/db',
         adminOrders: 'GET /api/v1/admin/orders (нужен токен)',
       },
-      note: 'Спецификация REST API — 39 операций, файл api/openapi.yaml',
+      note: 'Спецификация REST API — 41 операция, файл api/openapi.yaml',
     });
   });
 
