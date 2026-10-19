@@ -19,7 +19,7 @@
 
 **Файл:** [`12-repo-branches.puml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/12-repo-branches.puml)
 
-![Рис. 11. Репозитории PCHelper и модель веток](https://alekseinarkevich.github.io/pchelper-infra/img/12-repo-branches.png)
+![Рис. 30. Репозитории PCHelper и модель веток](https://alekseinarkevich.github.io/pchelper-infra/img/12-repo-branches.png)
 
 #### Репозитории
 
@@ -93,7 +93,7 @@ pchelper-infra/
    успешная сборка образа.
 5. Сообщения коммитов — на английском в формате Conventional Commits.
 
-![Рис. 24. Репозиторий pchelper-infra на GitHub](https://alekseinarkevich.github.io/pchelper-infra/img/shots/29-github-repo-code.png)
+![Рис. 31. Репозиторий pchelper-infra на GitHub](https://alekseinarkevich.github.io/pchelper-infra/img/shots/29-github-repo-code.png)
 
 
 
@@ -167,13 +167,13 @@ pchelper-infra/
 открытая работа, а не искусственно разложенные выполненные задачи.
 Все 18 задач лабораторной работы лежат в *Done*.
 
-![Рис. 31. Доска «Разработка API и бизнес-логики»: четыре списка, карточки задач с исполнителями](https://alekseinarkevich.github.io/pchelper-infra/img/shots/31-github-projects.png)
+![Рис. 32. Доска «Разработка API и бизнес-логики»: четыре списка, карточки задач с исполнителями](https://alekseinarkevich.github.io/pchelper-infra/img/shots/31-github-projects.png)
 
 ## Docker-инфраструктура
 
 **Файл:** [`10-docker-infrastructure.puml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/10-docker-infrastructure.puml)
 
-![Рис. 13. Инфраструктура PCHelper на Docker и Docker Compose](https://alekseinarkevich.github.io/pchelper-infra/img/10-docker-infrastructure.png)
+![Рис. 34. Инфраструктура PCHelper на Docker и Docker Compose](https://alekseinarkevich.github.io/pchelper-infra/img/10-docker-infrastructure.png)
 
 Это **уточнение** диаграммы развёртывания из лабораторной работы 3
 (`20-deployment.puml`): в ней появились контейнеры, порты, healthcheck,
@@ -343,13 +343,13 @@ SonarQube через `sonar.javascript.lcov.reportPaths`, поэтому сни�
 исключён из репозитория через `.gitignore`.
 
 
-![Рис. 25. Прогон конвейера № 29: все шесть этапов зелёные](https://alekseinarkevich.github.io/pchelper-infra/img/shots/36-github-actions-run.png)
+![Рис. 37. Прогон конвейера № 29: все шесть этапов зелёные](https://alekseinarkevich.github.io/pchelper-infra/img/shots/36-github-actions-run.png)
 
 ## CI/CD-конвейер
 
 **Файл:** [`11-cicd-pipeline.puml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/11-cicd-pipeline.puml)
 
-![Рис. 14. CI/CD-конвейер PCHelper (GitHub Actions + SonarQube + Docker + Render)](https://alekseinarkevich.github.io/pchelper-infra/img/11-cicd-pipeline.png)
+![Рис. 38. CI/CD-конвейер PCHelper (GitHub Actions + SonarQube + Docker + Render)](https://alekseinarkevich.github.io/pchelper-infra/img/11-cicd-pipeline.png)
 
 #### Этапы конвейера
 
@@ -529,9 +529,9 @@ sonar.qualitygate.timeout=300
 Обратите внимание на строку `sonar.openapi.path` — SonarQube умеет
 анализировать спецификацию Open API и показывает проблемы в контракте.
 
-![Рис. 26. SonarCloud: дашборд проекта и метрики](https://alekseinarkevich.github.io/pchelper-infra/img/shots/38-sonarcloud-summary.png)
+![Рис. 39. SonarCloud: дашборд проекта и метрики](https://alekseinarkevich.github.io/pchelper-infra/img/shots/38-sonarcloud-summary.png)
 
-![Рис. 27. SonarCloud: Quality Gate в статусе Passed](https://alekseinarkevich.github.io/pchelper-infra/img/shots/39-sonarcloud-quality.png)
+![Рис. 40. SonarCloud: Quality Gate в статусе Passed](https://alekseinarkevich.github.io/pchelper-infra/img/shots/39-sonarcloud-quality.png)
 
 ## Развёртывание на бесплатной платформе
 
