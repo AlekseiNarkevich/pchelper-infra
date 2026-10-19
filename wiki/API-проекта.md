@@ -32,7 +32,7 @@
 
 **Файл:** [`05-routes-endpoints.puml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/05-routes-endpoints.puml)
 
-![Рис. 5. Проектирование маршрутов и конечных точек API](https://alekseinarkevich.github.io/pchelper-infra/img/05-routes-endpoints.png)
+![Рис. 11. Проектирование маршрутов и конечных точек API](https://alekseinarkevich.github.io/pchelper-infra/img/05-routes-endpoints.png)
 
 #### Сводная таблица маршрутов
 
@@ -82,7 +82,7 @@
 
 **Файл:** [`06-usecase-endpoint-mapping.puml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/06-usecase-endpoint-mapping.puml)
 
-![Рис. 6. Сопоставление вариантов использования и конечных точек API](https://alekseinarkevich.github.io/pchelper-infra/img/06-usecase-endpoint-mapping.png)
+![Рис. 12. Сопоставление вариантов использования и конечных точек API](https://alekseinarkevich.github.io/pchelper-infra/img/06-usecase-endpoint-mapping.png)
 
 #### Таблица соответствия UC ↔ HTTP-метод ↔ маршрут ↔ коды ответа
 
@@ -290,7 +290,7 @@
    проекта — на странице вики «API-проекта» и на странице сайта
    `api.html` (раздел 4.6).
 
-![Рис. 17. Интерактивная документация API (Redoc)](https://alekseinarkevich.github.io/pchelper-infra/img/shots/12-api-reference-redoc.png)
+![Рис. 14. Интерактивная документация API (Redoc)](https://alekseinarkevich.github.io/pchelper-infra/img/shots/12-api-reference-redoc.png)
 
 ---
 
@@ -358,10 +358,10 @@
    свободный. Облачный адрес вида `https://xxxxxxxx.usebruno.com`
    относится к платному тарифу и в этой лабораторной работе не используется.
 
-![Рис. 37. Коллекция Bruno: 9 папок по тегам и 41 запрос](https://alekseinarkevich.github.io/pchelper-infra/img/shots/13-bruno-collection.png)
+![Рис. 15. Коллекция Bruno: 9 папок по тегам и 41 запрос](https://alekseinarkevich.github.io/pchelper-infra/img/shots/13-bruno-collection.png)
 
 
-![Рис. 38. Mock-сервер Bruno: 41 маршрут и 129 ответов из спецификации](https://alekseinarkevich.github.io/pchelper-infra/img/shots/14-bruno-mock-server.png)
+![Рис. 16. Mock-сервер Bruno: 41 маршрут и 129 ответов из спецификации](https://alekseinarkevich.github.io/pchelper-infra/img/shots/14-bruno-mock-server.png)
 
 ## Тестирование спецификации на Mock-сервере
 
@@ -434,12 +434,12 @@
 отправленного заказа), TC-32 (недопустимый переход статуса),
 TC-24 (фиксация снимка цен) и TC-08 (проверка совместимости).
 
-![Рис. 39. Тест-кейс TC-08: проверка несовместимой сборки, ответ 200](https://alekseinarkevich.github.io/pchelper-infra/img/shots/15-bruno-tc08-validate.png)
+![Рис. 17. Тест-кейс TC-08: проверканесовместимой сборки, ответ 200](https://alekseinarkevich.github.io/pchelper-infra/img/shots/15-bruno-tc08-validate.png)
 
 
-![Рис. 40. Тест-кейс TC-33: админ-ресурс для покупателя, ответ 403](https://alekseinarkevich.github.io/pchelper-infra/img/shots/16-bruno-tc33-forbidden.png)
+![Рис. 18. Тест-кейс TC-33: админ-ресурс для покупателя, ответ 403](https://alekseinarkevich.github.io/pchelper-infra/img/shots/16-bruno-tc33-forbidden.png)
 
-![Рис. 41. Протокол тестирования: 39 тест-кейсов, 39 пройдено](https://alekseinarkevich.github.io/pchelper-infra/img/shots/17-bruno-test-protocol.png)
+![Рис. 19. Протокол тестирования: 39тест-кейсов, 39 пройдено](https://alekseinarkevich.github.io/pchelper-infra/img/shots/17-bruno-test-protocol.png)
 
 ## Проверка спецификации линтером
 
