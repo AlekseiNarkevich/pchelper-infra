@@ -3,6 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 
 import { getCategories, getProducts } from '../api.js';
 import ProductCard from '../components/ProductCard.jsx';
+import React from 'react';
 
 const PAGE_SIZE = 12;
 

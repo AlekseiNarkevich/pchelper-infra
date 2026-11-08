@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 
 import { getPrebuilt, money } from '../api.js';
 import { addToCart } from '../cart.js';
+import React from 'react';
 
 /**
  * Готовые сборки: состав, задача и цена из суммы деталей.
