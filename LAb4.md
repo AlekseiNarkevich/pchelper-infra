@@ -206,7 +206,7 @@ C4-модель, Event Storming и Event Modeling.
 
 **Файл:** `diagrams/plantuml/01-requirements-model.puml`
 
-![Рис. 1. Модель требований: Действующее лицо → User Story → Вариант использования](https://alekseinarkevich.github.io/pchelper-infra/img/01-requirements-model.png)
+![Рис. 1. Модель требований: Действующее лицо → User Story → Вариант использования](https://alekseinarkevich.github.io/pchelper-store/img/01-requirements-model.png)
 
 Диаграмма построена по принципу **прослеживаемости** (traceability): от каждой
 пользовательской истории можно перейти к прецеденту, а от прецедента — в
@@ -240,7 +240,7 @@ C4-модель, Event Storming и Event Modeling.
 
 **Файл:** `diagrams/plantuml/02-usecase-registry.puml`
 
-![Рис. 2. Реестр вариантов использования PCHelper](https://alekseinarkevich.github.io/pchelper-infra/img/02-usecase-registry.png)
+![Рис. 2. Реестр вариантов использования PCHelper](https://alekseinarkevich.github.io/pchelper-store/img/02-usecase-registry.png)
 
 #### 1.4.1. Таблица реестра
 
@@ -311,8 +311,8 @@ C4-модель, Event Storming и Event Modeling.
 
 | Где | Адрес | Что размещено |
 |-----|-------|---------------|
-| Страница вики «Функциональные требования» | `https://github.com/AlekseiNarkevich/pchelper-infra/wiki/Функциональные-требования` | таблица FR-01…FR-16 и NFR-01…NFR-10, 17 User Story, 25 вариантов использования, диаграмма модели требований и реестра |
-| Страница сайта `requirements.html` | `https://alekseinarkevich.github.io/pchelper-infra/requirements.html` | то же содержимое в оформлении сайта, с навигацией и ссылками на остальные разделы |
+| Страница вики «Функциональные требования» | `https://github.com/AlekseiNarkevich/pchelper-store/wiki/Функциональные-требования` | таблица FR-01…FR-16 и NFR-01…NFR-10, 17 User Story, 25 вариантов использования, диаграмма модели требований и реестра |
+| Страница сайта `requirements.html` | `https://alekseinarkevich.github.io/pchelper-store/requirements.html` | то же содержимое в оформлении сайта, с навигацией и ссылками на остальные разделы |
 
 Диаграммы на страницах подгружаются с сайта GitHub Pages
 (`/img/01-requirements-model.png`, `/img/02-usecase-registry.png`),
@@ -320,7 +320,7 @@ C4-модель, Event Storming и Event Modeling.
 
 Со ссылкой на страницу обновлена главная страница вики **Home**.
 
-![Рис. 3. Страница вики «Функциональные требования»](https://alekseinarkevich.github.io/pchelper-infra/img/shots/03-wiki-requirements.png)
+![Рис. 3. Страница вики «Функциональные требования»](https://alekseinarkevich.github.io/pchelper-store/img/shots/03-wiki-requirements.png)
 
 ---
 
@@ -355,7 +355,7 @@ C4-модель, Event Storming и Event Modeling.
 
 **Файл:** `diagrams/plantuml/03-logical-schema.puml`
 
-![Рис. 4. Логическая схема базы данных PCHelper](https://alekseinarkevich.github.io/pchelper-infra/img/03-logical-schema.png)
+![Рис. 4. Логическая схема базы данных PCHelper](https://alekseinarkevich.github.io/pchelper-store/img/03-logical-schema.png)
 
 Отличия от ERD ЛР3: логическая схема оперирует **бизнес-сущностями**
 («Компонент», «Пользователь», «Корзина», «Заказ»), без технических типов
@@ -366,7 +366,7 @@ C4-модель, Event Storming и Event Modeling.
 
 **Файл:** `diagrams/plantuml/04-physical-erd.puml`
 
-![Рис. 5. Физическая модель базы данных PCHelper (PostgreSQL 15)](https://alekseinarkevich.github.io/pchelper-infra/img/04-physical-erd.png)
+![Рис. 5. Физическая модель базы данных PCHelper (PostgreSQL 15)](https://alekseinarkevich.github.io/pchelper-store/img/04-physical-erd.png)
 
 #### 2.3.1. Таблицы каталога (существуют, уточнены)
 
@@ -635,11 +635,11 @@ ERROR:  new row for relation "Корзина_Позиции" violates check cons
 Итого: **23 таблицы, 72 индекса, 7 типов-перечислений, 4 триггера**,
 применение схемы — без единой ошибки.
 
-![Рис. 6. Проверки 1-5: каталог, вычисление цен, запас БП, несовместимая сборка](https://alekseinarkevich.github.io/pchelper-infra/img/shots/06-db-check-1.png)
-![Рис. 7. Проверки 6-12: переходы статуса, запрет отмены, CHECK, снимок цены](https://alekseinarkevich.github.io/pchelper-infra/img/shots/06-db-check-2.png)
-![Рис. 8. Проверки 13-14: журнал агента и итоговые счётчики](https://alekseinarkevich.github.io/pchelper-infra/img/shots/06-db-check-3.png)
+![Рис. 6. Проверки 1-5: каталог, вычисление цен, запас БП, несовместимая сборка](https://alekseinarkevich.github.io/pchelper-store/img/shots/06-db-check-1.png)
+![Рис. 7. Проверки 6-12: переходы статуса, запрет отмены, CHECK, снимок цены](https://alekseinarkevich.github.io/pchelper-store/img/shots/06-db-check-2.png)
+![Рис. 8. Проверки 13-14: журнал агента и итоговые счётчики](https://alekseinarkevich.github.io/pchelper-store/img/shots/06-db-check-3.png)
 
-![Рис. 9. Запрет отмены доставленного заказа на уровне базы данных](https://alekseinarkevich.github.io/pchelper-infra/img/shots/07-cancel-guard.png)
+![Рис. 9. Запрет отмены доставленного заказа на уровне базы данных](https://alekseinarkevich.github.io/pchelper-store/img/shots/07-cancel-guard.png)
 
 ### 2.7. Публикация в вики и GitHub Pages
 
@@ -653,10 +653,10 @@ ERROR:  new row for relation "Корзина_Позиции" violates check cons
   `db/01_schema.sql`, `02_marketplace.sql`, `03_indexes_constraints.sql`,
   `04_views.sql`, `05_seed.sql`, проверочный `06_check.sql`.
 
-Адрес страницы: `https://github.com/AlekseiNarkevich/pchelper-infra/wiki/Схема-базы-данных`. Та же информация продублирована на сайте
-GitHub Pages — `https://alekseinarkevich.github.io/pchelper-infra/db.html`.
+Адрес страницы: `https://github.com/AlekseiNarkevich/pchelper-store/wiki/Схема-базы-данных`. Та же информация продублирована на сайте
+GitHub Pages — `https://alekseinarkevich.github.io/pchelper-store/db.html`.
 
-![Рис. 10. Страница вики «Схема базы данных»](https://alekseinarkevich.github.io/pchelper-infra/img/shots/08-wiki-db-schema.png)
+![Рис. 10. Страница вики «Схема базы данных»](https://alekseinarkevich.github.io/pchelper-store/img/shots/08-wiki-db-schema.png)
 
 ---
 
@@ -684,7 +684,7 @@ GitHub Pages — `https://alekseinarkevich.github.io/pchelper-infra/db.html`.
 
 **Файл:** `diagrams/plantuml/05-routes-endpoints.puml`
 
-![Рис. 11. Проектирование маршрутов и конечных точек API](https://alekseinarkevich.github.io/pchelper-infra/img/05-routes-endpoints.png)
+![Рис. 11. Проектирование маршрутов и конечных точек API](https://alekseinarkevich.github.io/pchelper-store/img/05-routes-endpoints.png)
 
 #### 3.2.1. Сводная таблица маршрутов
 
@@ -734,7 +734,7 @@ GitHub Pages — `https://alekseinarkevich.github.io/pchelper-infra/db.html`.
 
 **Файл:** `diagrams/plantuml/06-usecase-endpoint-mapping.puml`
 
-![Рис. 12. Сопоставление вариантов использования и конечных точек API](https://alekseinarkevich.github.io/pchelper-infra/img/06-usecase-endpoint-mapping.png)
+![Рис. 12. Сопоставление вариантов использования и конечных точек API](https://alekseinarkevich.github.io/pchelper-store/img/06-usecase-endpoint-mapping.png)
 
 #### 3.3.1. Таблица соответствия UC ↔ HTTP-метод ↔ маршрут ↔ коды ответа
 
@@ -917,7 +917,7 @@ GitHub Pages — `https://alekseinarkevich.github.io/pchelper-infra/db.html`.
 
 **Файл:** `diagrams/plantuml/07-api-layers.puml`
 
-![Рис. 13. Архитектура REST API PCHelper — слои backend](https://alekseinarkevich.github.io/pchelper-infra/img/07-api-layers.png)
+![Рис. 13. Архитектура REST API PCHelper — слои backend](https://alekseinarkevich.github.io/pchelper-store/img/07-api-layers.png)
 
 Правило разделения: **контроллер не содержит бизнес-логики, сервис не знает
 о HTTP, репозиторий — единственное место, где известен SQL**. Благодаря этому
@@ -954,7 +954,7 @@ GitHub Pages — `https://alekseinarkevich.github.io/pchelper-infra/db.html`.
    проекта — на странице вики «API-проекта» и на странице сайта
    `api.html` (раздел 4.6).
 
-![Рис. 14. Интерактивная документация API (Redoc)](https://alekseinarkevich.github.io/pchelper-infra/img/shots/12-api-reference-redoc.png)
+![Рис. 14. Интерактивная документация API (Redoc)](https://alekseinarkevich.github.io/pchelper-store/img/shots/12-api-reference-redoc.png)
 
 ---
 ## 4. Задание 4. Проектирование и тестирование API
@@ -1023,10 +1023,10 @@ GitHub Pages — `https://alekseinarkevich.github.io/pchelper-infra/db.html`.
    свободный. Облачный адрес вида `https://xxxxxxxx.usebruno.com`
    относится к платному тарифу и в этой лабораторной работе не используется.
 
-![Рис. 15. Коллекция Bruno: 9 папок по тегам и 41 запрос](https://alekseinarkevich.github.io/pchelper-infra/img/shots/13-bruno-collection.png)
+![Рис. 15. Коллекция Bruno: 9 папок по тегам и 41 запрос](https://alekseinarkevich.github.io/pchelper-store/img/shots/13-bruno-collection.png)
 
 
-![Рис. 16. Mock-сервер Bruno: 41 маршрут и 129 ответов из спецификации](https://alekseinarkevich.github.io/pchelper-infra/img/shots/14-bruno-mock-server.png)
+![Рис. 16. Mock-сервер Bruno: 41 маршрут и 129 ответов из спецификации](https://alekseinarkevich.github.io/pchelper-store/img/shots/14-bruno-mock-server.png)
 
 
 ### 4.3. Тестирование спецификации на Mock-сервере
@@ -1100,12 +1100,12 @@ GitHub Pages — `https://alekseinarkevich.github.io/pchelper-infra/db.html`.
 отправленного заказа), TC-32 (недопустимый переход статуса),
 TC-24 (фиксация снимка цен) и TC-08 (проверка совместимости).
 
-![Рис. 17. Тест-кейс TC-08: проверка несовместимой сборки, ответ 200](https://alekseinarkevich.github.io/pchelper-infra/img/shots/15-bruno-tc08-validate.png)
+![Рис. 17. Тест-кейс TC-08: проверка несовместимой сборки, ответ 200](https://alekseinarkevich.github.io/pchelper-store/img/shots/15-bruno-tc08-validate.png)
 
 
-![Рис. 18. Тест-кейс TC-33: админ-ресурс для покупателя, ответ 403](https://alekseinarkevich.github.io/pchelper-infra/img/shots/16-bruno-tc33-forbidden.png)
+![Рис. 18. Тест-кейс TC-33: админ-ресурс для покупателя, ответ 403](https://alekseinarkevich.github.io/pchelper-store/img/shots/16-bruno-tc33-forbidden.png)
 
-![Рис. 19. Протокол тестирования: 39 тест-кейсов, 39 пройдено](https://alekseinarkevich.github.io/pchelper-infra/img/shots/17-bruno-test-protocol.png)
+![Рис. 19. Протокол тестирования: 39 тест-кейсов, 39 пройдено](https://alekseinarkevich.github.io/pchelper-store/img/shots/17-bruno-test-protocol.png)
 
 ### 4.4. Скрипты в Bruno
 
@@ -1200,10 +1200,10 @@ API в документацию проекта. Выполнено — стра�
 * ссылку на исходную спецификацию `api/openapi.yaml` в репозитории;
 * ссылку на интерактивную документацию, собираемую в CI.
 
-Адрес страницы: `https://github.com/AlekseiNarkevich/pchelper-infra/wiki/API-проекта`. На сайте GitHub Pages те же материалы
-собраны в оформленную страницу `https://alekseinarkevich.github.io/pchelper-infra/api.html`.
+Адрес страницы: `https://github.com/AlekseiNarkevich/pchelper-store/wiki/API-проекта`. На сайте GitHub Pages те же материалы
+собраны в оформленную страницу `https://alekseinarkevich.github.io/pchelper-store/api.html`.
 
-![Рис. 20. Страница вики «API-проекта»](https://alekseinarkevich.github.io/pchelper-infra/img/shots/18-wiki-api.png)
+![Рис. 20. Страница вики «API-проекта»](https://alekseinarkevich.github.io/pchelper-store/img/shots/18-wiki-api.png)
 
 ---
 
@@ -1265,7 +1265,7 @@ AI-ассистенту взаимодействовать с базой дан�
 
 **Файл:** `diagrams/plantuml/08-mcp-architecture.puml`
 
-![Рис. 21. Архитектура MCP-сервера PCHelper](https://alekseinarkevich.github.io/pchelper-infra/img/08-mcp-architecture.png)
+![Рис. 21. Архитектура MCP-сервера PCHelper](https://alekseinarkevich.github.io/pchelper-store/img/08-mcp-architecture.png)
 
 #### 5.4.1. Решение: два транспорта
 
@@ -1295,7 +1295,7 @@ db.py        ← доступ к данным
 
 **Файл:** `diagrams/plantuml/14-mcp-schema.puml`
 
-![Рис. 22. JSON-схемы примитивов MCP-сервера PCHelper](https://alekseinarkevich.github.io/pchelper-infra/img/14-mcp-schema.png)
+![Рис. 22. JSON-схемы примитивов MCP-сервера PCHelper](https://alekseinarkevich.github.io/pchelper-store/img/14-mcp-schema.png)
 
 #### 5.5.1. Принципы типизации аргументов
 
@@ -1576,7 +1576,7 @@ AUDIT: {'инструмент': 'cancel_order', 'результат': 'Отка�
 
 **Файл:** `diagrams/plantuml/09-mcp-sequence.puml`
 
-![Рис. 23. MCP — последовательность взаимодействия при сценарии “Собрать ПК и оформить заказ”](https://alekseinarkevich.github.io/pchelper-infra/img/09-mcp-sequence.png)
+![Рис. 23. MCP — последовательность взаимодействия при сценарии “Собрать ПК и оформить заказ”](https://alekseinarkevich.github.io/pchelper-store/img/09-mcp-sequence.png)
 
 ### 5.11. Тестирование через MCP Inspector
 
@@ -1697,16 +1697,16 @@ INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8080 (Press CTRL+C to quit)
 ```
 
-![Рис. 24. MCP Inspector: список из 13 инструментов](https://alekseinarkevich.github.io/pchelper-infra/img/shots/mcp-01-tools.png)
+![Рис. 24. MCP Inspector: список из 13 инструментов](https://alekseinarkevich.github.io/pchelper-store/img/shots/mcp-01-tools.png)
 
-![Рис. 25. Проверка несовместимой сборки: SOCKET_MISMATCH](https://alekseinarkevich.github.io/pchelper-infra/img/shots/mcp-02-check-compatibility.png)
+![Рис. 25. Проверка несовместимой сборки: SOCKET_MISMATCH](https://alekseinarkevich.github.io/pchelper-store/img/shots/mcp-02-check-compatibility.png)
 
-![Рис. 26. Запрет отмены доставленного заказа](https://alekseinarkevich.github.io/pchelper-infra/img/shots/mcp-03-cancel-order.png)
+![Рис. 26. Запрет отмены доставленного заказа](https://alekseinarkevich.github.io/pchelper-store/img/shots/mcp-03-cancel-order.png)
 
 
-![Рис. 27. MCP Inspector: пять шаблонов промптов](https://alekseinarkevich.github.io/pchelper-infra/img/shots/mcp-04-prompts.png)
+![Рис. 27. MCP Inspector: пять шаблонов промптов](https://alekseinarkevich.github.io/pchelper-store/img/shots/mcp-04-prompts.png)
 
-![Рис. 28. Тесты доменной логики MCP-сервера: 39 passed](https://alekseinarkevich.github.io/pchelper-infra/img/shots/26-pytest.png)
+![Рис. 28. Тесты доменной логики MCP-сервера: 39 passed](https://alekseinarkevich.github.io/pchelper-store/img/shots/26-pytest.png)
 
 ### 5.12. Развёртывание и документация
 
@@ -1838,9 +1838,9 @@ MCP-сервера и ссылку на документацию. Выполне
 * примеры запросов от лица пользователя из раздела 5.13;
 * ссылку на `mcp/README.md` с инструкцией по развёртыванию.
 
-Адрес страницы: `https://github.com/AlekseiNarkevich/pchelper-infra/wiki/MCP-сервер`. На сайте — `https://alekseinarkevich.github.io/pchelper-infra/mcp.html`.
+Адрес страницы: `https://github.com/AlekseiNarkevich/pchelper-store/wiki/MCP-сервер`. На сайте — `https://alekseinarkevich.github.io/pchelper-store/mcp.html`.
 
-![Рис. 29. Страница вики «MCP-сервер»](https://alekseinarkevich.github.io/pchelper-infra/img/shots/27-wiki-mcp.png)
+![Рис. 29. Страница вики «MCP-сервер»](https://alekseinarkevich.github.io/pchelper-store/img/shots/27-wiki-mcp.png)
 
 ---
 
@@ -1850,7 +1850,7 @@ MCP-сервера и ссылку на документацию. Выполне
 
 **Файл:** `diagrams/plantuml/12-repo-branches.puml`
 
-![Рис. 30. Репозитории PCHelper и модель веток](https://alekseinarkevich.github.io/pchelper-infra/img/12-repo-branches.png)
+![Рис. 30. Репозитории PCHelper и модель веток](https://alekseinarkevich.github.io/pchelper-store/img/12-repo-branches.png)
 
 #### 6.1.1. Репозитории
 
@@ -1858,7 +1858,7 @@ MCP-сервера и ссылку на документацию. Выполне
 
 | Репозиторий | Назначение | Состояние |
 |-------------|-----------|-----------|
-| [`AlekseiNarkevich/pchelper-infra`](https://github.com/AlekseiNarkevich/pchelper-infra) | Документация лабораторной работы, вики, GitHub Pages, Docker-окружение, CI/CD, SonarQube, развёртывание | **рабочий**: конвейер зелёный, сервис доступен на `pchelper-infra.onrender.com` |
+| [`AlekseiNarkevich/pchelper-store`](https://github.com/AlekseiNarkevich/pchelper-store) | Документация лабораторной работы, вики, GitHub Pages, Docker-окружение, CI/CD, SonarQube, развёртывание | **рабочий**: конвейер зелёный, сервис доступен на `pchelper-infra.onrender.com` |
 
 Задание 6, пункт 2 требует разнести проект по репозиториям бекенда,
 веб- и мобильной версии. Целевая структура курсовой работы — четыре
@@ -1869,7 +1869,7 @@ MCP-сервера и ссылку на документацию. Выполне
 
 **Репозиторий, в котором выполняется задание 6.** Конвейер CI/CD, проверка
 качества кода и развёртывание выполняются в отдельном личном репозитории
-[`AlekseiNarkevich/pchelper-infra`](https://github.com/AlekseiNarkevich/pchelper-infra).
+[`AlekseiNarkevich/pchelper-store`](https://github.com/AlekseiNarkevich/pchelper-store).
 Это сознательное решение: инфраструктура задания 6 — учебный стенд, который
 поднимается одной командой `docker compose up -d --build`, и выносить его
 в отдельный репозиторий преждевременно, пока нечего переносить. Структура:
@@ -1924,7 +1924,7 @@ pchelper-infra/
    успешная сборка образа.
 5. Сообщения коммитов — на английском в формате Conventional Commits.
 
-![Рис. 31. Репозиторий pchelper-infra на GitHub](https://alekseinarkevich.github.io/pchelper-infra/img/shots/29-github-repo-code.png)
+![Рис. 31. Репозиторий pchelper-infra на GitHub](https://alekseinarkevich.github.io/pchelper-store/img/shots/29-github-repo-code.png)
 
 Правило создано с параметрами *Enforcement status: Active*, раздел
 **Targets → Branches** с паттерном `main` и набором правил
@@ -2018,7 +2018,7 @@ pchelper-infra/
 открытая работа, а не искусственно разложенные выполненные задачи.
 Все 18 задач лабораторной работы лежат в *Done*.
 
-![Рис. 32. Доска «Разработка API и бизнес-логики»: четыре списка, карточки задач с исполнителями](https://alekseinarkevich.github.io/pchelper-infra/img/shots/31-github-projects.png)
+![Рис. 32. Доска «Разработка API и бизнес-логики»: четыре списка, карточки задач с исполнителями](https://alekseinarkevich.github.io/pchelper-store/img/shots/31-github-projects.png)
 
 ### 6.3. План работ по backend с распределением задач
 
@@ -2082,13 +2082,13 @@ pchelper-infra/
 
 **Файл:** `diagrams/plantuml/13-app-files.puml`
 
-![Рис. 33. Диаграмма файлов приложения PCHelper](https://alekseinarkevich.github.io/pchelper-infra/img/13-app-files.png)
+![Рис. 33. Диаграмма файлов приложения PCHelper](https://alekseinarkevich.github.io/pchelper-store/img/13-app-files.png)
 
 ### 6.5. Docker-инфраструктура
 
 **Файл:** `diagrams/plantuml/10-docker-infrastructure.puml`
 
-![Рис. 34. Инфраструктура PCHelper на Docker и Docker Compose](https://alekseinarkevich.github.io/pchelper-infra/img/10-docker-infrastructure.png)
+![Рис. 34. Инфраструктура PCHelper на Docker и Docker Compose](https://alekseinarkevich.github.io/pchelper-store/img/10-docker-infrastructure.png)
 
 Это **уточнение** диаграммы развёртывания из лабораторной работы 3
 (`20-deployment.puml`): в ней появились контейнеры, порты, healthcheck,
@@ -2205,7 +2205,7 @@ docker compose down        # остановить контейнеры, тома
 docker compose down -v     # остановить и удалить тома с данными
 ```
 
-![Рис. 35. Состояние контейнеров стенда: все четыре healthy](https://alekseinarkevich.github.io/pchelper-infra/img/shots/34-docker-compose-ps.png)
+![Рис. 35. Состояние контейнеров стенда: все четыре healthy](https://alekseinarkevich.github.io/pchelper-store/img/shots/34-docker-compose-ps.png)
 
 
 ### 6.6. Приложение «Hello World»
@@ -2279,7 +2279,7 @@ $ curl -H "Authorization: Bearer dev-admin-token" http://localhost:3001/api/v1/a
  "note":"Заглушка: полноценный модуль заказов реализуется в курсовой работе."}
 ```
 
-![Рис. 36. Ответ корневого маршрута стенда](https://alekseinarkevich.github.io/pchelper-infra/img/shots/35-curl-hello.png)
+![Рис. 36. Ответ корневого маршрута стенда](https://alekseinarkevich.github.io/pchelper-store/img/shots/35-curl-hello.png)
 
 
 ### 6.7. Автоматические тесты в CI
@@ -2333,14 +2333,14 @@ SonarQube через `sonar.javascript.lcov.reportPaths`, поэтому сни�
 исключён из репозитория через `.gitignore`.
 
 
-![Рис. 37. Прогон конвейера № 29: все шесть этапов зелёные](https://alekseinarkevich.github.io/pchelper-infra/img/shots/36-github-actions-run.png)
+![Рис. 37. Прогон конвейера № 29: все шесть этапов зелёные](https://alekseinarkevich.github.io/pchelper-store/img/shots/36-github-actions-run.png)
 
 
 ### 6.8. CI/CD-конвейер
 
 **Файл:** `diagrams/plantuml/11-cicd-pipeline.puml`
 
-![Рис. 38. CI/CD-конвейер PCHelper (GitHub Actions + SonarQube + Docker + Render)](https://alekseinarkevich.github.io/pchelper-infra/img/11-cicd-pipeline.png)
+![Рис. 38. CI/CD-конвейер PCHelper (GitHub Actions + SonarQube + Docker + Render)](https://alekseinarkevich.github.io/pchelper-store/img/11-cicd-pipeline.png)
 
 #### 6.8.1. Этапы конвейера
 
@@ -2528,9 +2528,9 @@ sonar.qualitygate.timeout=300
 Обратите внимание на строку `sonar.openapi.path` — SonarQube умеет
 анализировать спецификацию Open API и показывает проблемы в контракте.
 
-![Рис. 39. SonarCloud: дашборд проекта и метрики](https://alekseinarkevich.github.io/pchelper-infra/img/shots/38-sonarcloud-summary.png)
+![Рис. 39. SonarCloud: дашборд проекта и метрики](https://alekseinarkevich.github.io/pchelper-store/img/shots/38-sonarcloud-summary.png)
 
-![Рис. 40. SonarCloud: Quality Gate в статусе Passed](https://alekseinarkevich.github.io/pchelper-infra/img/shots/39-sonarcloud-quality.png)
+![Рис. 40. SonarCloud: Quality Gate в статусе Passed](https://alekseinarkevich.github.io/pchelper-store/img/shots/39-sonarcloud-quality.png)
 
 
 ### 6.10. Развёртывание на бесплатной платформе
@@ -2545,7 +2545,7 @@ sonar.qualitygate.timeout=300
 #### 6.10.1. Настройка Render
 
 1. `render.com` → **New → Web Service** → подключить репозиторий
-   [`AlekseiNarkevich/pchelper-infra`](https://github.com/AlekseiNarkevich/pchelper-infra)
+   [`AlekseiNarkevich/pchelper-store`](https://github.com/AlekseiNarkevich/pchelper-store)
    (Root Directory: `backend`).
 2. **Build Command:** Render сам выполнит `docker build` по `Dockerfile` из
    каталога `backend` — отдельная команда не нужна.
@@ -2664,7 +2664,7 @@ git log --all --pretty=format:"%ad" --date=format:"%u" | sort | uniq -c
 а список коммитов — на странице проекта.
 
 
-![Рис. 41. GitHub Insights: вклад участников](https://alekseinarkevich.github.io/pchelper-infra/img/shots/42-github-insights.png)
+![Рис. 41. GitHub Insights: вклад участников](https://alekseinarkevich.github.io/pchelper-store/img/shots/42-github-insights.png)
 
 #### 6.11.2. Распределение работ
 
@@ -2717,7 +2717,7 @@ Sub modules, Usage, Contributing.
 
 ## Installation
 
-    git clone https://github.com/AlekseiNarkevich/pchelper-infra.git
+    git clone https://github.com/AlekseiNarkevich/pchelper-store.git
     cd pchelper
     docker compose up -d --build
 
@@ -2732,7 +2732,7 @@ Sub modules, Usage, Contributing.
 
 | Репозиторий | Описание |
 |-------------|----------|
-| [pchelper-infra](https://github.com/AlekseiNarkevich/pchelper-infra) | Документация лабораторной работы, Docker-окружение, CI/CD, SonarQube, развёртывание |
+| [pchelper-infra](https://github.com/AlekseiNarkevich/pchelper-store) | Документация лабораторной работы, Docker-окружение, CI/CD, SonarQube, развёртывание |
 | Серверное приложение и API | Появится при переносе стенда в курсовую работу |
 | Веб-клиент | Появится при переносе стенда в курсовую работу |
 | Мобильный клиент | Появится при переносе стенда в курсовую работу |
@@ -2773,7 +2773,7 @@ Sub modules, Usage, Contributing.
 | **Инфраструктура и CI/CD** | Docker, GitHub Actions, SonarQube, развёртывание на Render | Раздел 6 |
 | **Презентация проекта** | Ссылка на презентацию, план выступления и материалы для слайдов | — |
 
-Адрес вики: <https://github.com/AlekseiNarkevich/pchelper-infra/wiki>.
+Адрес вики: <https://github.com/AlekseiNarkevich/pchelper-store/wiki>.
 
 ### 7.4. Структура GitHub Pages
 
@@ -2781,7 +2781,7 @@ Sub modules, Usage, Contributing.
 аналогичную вики. Оформление сайта будет учитываться при выставлении
 оценки за проект по итогам курса». Выполнено — сайт из 10 страниц
 размещён в папке `docs/` ветки `main` и опубликован по адресу
-<https://alekseinarkevich.github.io/pchelper-infra/>.
+<https://alekseinarkevich.github.io/pchelper-store/>.
 
 | Страница | Файл | Содержимое |
 |----------|------|-----------|
@@ -2805,7 +2805,7 @@ Sub modules, Usage, Contributing.
 Содержимое сайта и вики собрано из этого же отчёта — расхождение
 между документацией и отчётом невозможно по построению.
 
-![Рис. 42. Главная страница сайта на GitHub Pages](https://alekseinarkevich.github.io/pchelper-infra/img/shots/43-pages-home.png)
+![Рис. 42. Главная страница сайта на GitHub Pages](https://alekseinarkevich.github.io/pchelper-store/img/shots/43-pages-home.png)
 
 ### 7.3. Дополнительная спецификация
 
@@ -3025,7 +3025,7 @@ Sub modules, Usage, Contributing.
 |---|----------------|---------------------------|-----------|
 | 1 | 1.3. Модель требований: Действующее лицо → User Story → Use Case | PlantUML-диаграмма «Модель требований: Действующее лицо → User Story → Вариант использования». На диаграмме три колонки: слева действующие лица (Гость, Покупате | открой `01-requirements-model.puml` в PlantUML (раздел 0.1), экспортируй PNG, сделай скриншот. |
 | 2 | 1.4. Реестр вариантов использования | PlantUML-диаграмма «Реестр вариантов использования PCHelper» с прямоугольником системы PCHelper, внутри которого семь пакетов по модулям (Модуль каталога, Модул | открой `02-usecase-registry.puml` в PlantUML, экспортируй PNG. |
-| 3 | 1.6. Публикация в вики и GitHub Pages | страница вики «Функциональные требования» — видна таблица требований, диаграмма модели требований и боковое меню вики со списком из 9 страниц. | открыть `https://github.com/AlekseiNarkevich/pchelper-infra/wiki/Функциональные-требования`, навести мышь на панель… |
+| 3 | 1.6. Публикация в вики и GitHub Pages | страница вики «Функциональные требования» — видна таблица требований, диаграмма модели требований и боковое меню вики со списком из 9 страниц. | открыть `https://github.com/AlekseiNarkevich/pchelper-store/wiki/Функциональные-требования`, навести мышь на панель… |
 
 ### Задание 2 — физическая модель базы данных — 5 скриншотов
 
@@ -3035,7 +3035,7 @@ Sub modules, Usage, Contributing.
 | 5 | 2.3. Физическая модель (рис. 3 методички) | PlantUML ER-диаграмма «Физическая модель базы данных PCHelper (PostgreSQL 15)» — сущности в виде таблиц с типами данных, первичными ключами (PK), внешними ключа | открой `04-physical-erd.puml` в PlantUML, экспортируй PNG. |
 | 6 | 2.6. Применение и проверка модели | вывод проверочного скрипта `db/06_check.sql` — 14 проверок, разбит на **три снимка**: проверки 1–5 (каталог, вычисление цен, запас БП, несовместимая сборка), проверки 6–12 (переходы статуса, запрет отмены, CHECK, снимок цены), проверки 13–14 (журнал агента, итоговые счётчики). | выполните команду из раздела 2.6 в терминале; вывод занимает 152 строки, поэтому снять его в три кадра с границами по заголовкам «ПРОВЕРКА 5» и «ПРОВЕРКА 10». |
 | 7 | 2.6. Применение и проверка модели | сообщение об ошибке при попытке отменить доставленный заказ — текст исключения из триггера `trg_order_cancel_guard` (проверка 7). | В терминале из каталога `ЛР4/infra` выполнить: docker compose exec -T postgres psql -U pchelper -d pchelper \ -f… |
-| 8 | 2.7. Публикация в вики и GitHub Pages | страница вики «Схема базы данных» с изображением физической ERD и ссылками на SQL-файлы. | открыть `https://github.com/AlekseiNarkevich/pchelper-infra/wiki/Схема-базы-данных`. |
+| 8 | 2.7. Публикация в вики и GitHub Pages | страница вики «Схема базы данных» с изображением физической ERD и ссылками на SQL-файлы. | открыть `https://github.com/AlekseiNarkevich/pchelper-store/wiki/Схема-базы-данных`. |
 
 ### Задание 3 — маршруты и конечные точки API — 4 скриншота
 
@@ -3055,7 +3055,7 @@ Sub modules, Usage, Contributing.
 | 15 | 4.3. Тестирование спецификации на Mock-сервере | Bruno — выполнение тест-кейса TC-08 (проверка несовместимой сборки). Видны: вкладка Body отправленного запроса с JSON конфигурации, статус `200 OK`, вкладка Tes | выбрать запрос *Configurator / Validate build*, нажать Send, развернуть панель ответа, сделать скриншот. |
 | 16 | 4.3. Тестирование спецификации на Mock-сервере | Bruno — тест-кейс TC-33 (доступ покупателя к админ-ресурсу): статус `403 Forbidden`, тело с `FORBIDDEN`. | Аналогично: раскрыть блок **Response** у запроса TC-33 и снять ответ с кодом 403. |
 | 17 | 4.3. Тестирование спецификации на Mock-сервере | сводная таблица результатов тестирования — можно сделать скриншот таблицы из протокола, оформленной как отчёт в любой табличном редакторе или прямо в Bruno (вкл | Свести результаты всех 39 тест-кейсов в таблицу «№ — название — ожидаемый код — фактический код — результат» и… |
-| 18 | 4.6. Примеры запросов и документация в вики и GitHub Pages | страница вики «API-проекта» — видна таблица маршрутов и раздел с примерами запросов. | открыть `https://github.com/AlekseiNarkevich/pchelper-infra/wiki/API-проекта`. |
+| 18 | 4.6. Примеры запросов и документация в вики и GitHub Pages | страница вики «API-проекта» — видна таблица маршрутов и раздел с примерами запросов. | открыть `https://github.com/AlekseiNarkevich/pchelper-store/wiki/API-проекта`. |
 
 ### Задание 5 — MCP-сервер — 9 скриншотов
 
@@ -3069,7 +3069,7 @@ Sub modules, Usage, Contributing.
 | 24 | 5.11. Тестирование через MCP Inspector | MCP Inspector, вызов `cancel_order` для доставленного заказа — красная пометка `isError` и текст «Отмена невозможна: заказ … в статусе «Доставлен»». | в том же Inspector выполнить `cancel_order` с `order_id=4` и `reason="передумал"` — сервер вернёт ошибку о… |
 | 25 | 5.11. Тестирование через MCP Inspector | MCP Inspector, вкладка **Prompts** — 5 шаблонов. | В Inspector открыть вкладку **Prompts** и снять список из 5 шаблонов. |
 | 26 | 5.11. Тестирование через MCP Inspector | вывод в терминале `pytest -q` — строка `39 passed`. | В терминале из каталога `mcp` выполнить `pytest -q` и снять окно со строкой `39 passed`. |
-| 27 | 5.14. Публикация в вики и GitHub Pages | страница вики «MCP-сервер» с таблицами инструментов и ресурсов. | открыть `https://github.com/AlekseiNarkevich/pchelper-infra/wiki/MCP-сервер`. |
+| 27 | 5.14. Публикация в вики и GitHub Pages | страница вики «MCP-сервер» с таблицами инструментов и ресурсов. | открыть `https://github.com/AlekseiNarkevich/pchelper-store/wiki/MCP-сервер`. |
 
 ### Задание 6 — инфраструктура, CI/CD и развёртывание — 12 скриншотов
 
@@ -3097,7 +3097,7 @@ Sub modules, Usage, Contributing.
 
 | № | Раздел отчёта | Что должно быть на снимке | Где взять |
 |---|----------------|---------------------------|-----------|
-| 43 | 7.4. Структура GitHub Pages | главная страница сайта GitHub Pages `pchelper-infra` с навигационной панелью и плитками разделов. | открыть https://alekseinarkevich.github.io/pchelper-infra/ в браузере. |
+| 43 | 7.4. Структура GitHub Pages | главная страница сайта GitHub Pages `pchelper-infra` с навигационной панелью и плитками разделов. | открыть https://alekseinarkevich.github.io/pchelper-store/ в браузере. |
 
 
 ## Приложение В. Что нужно сделать самостоятельно
@@ -3116,4 +3116,4 @@ Sub modules, Usage, Contributing.
 39 тестов, конвейер в репозитории `pchelper-infra` проходит целиком,
 сервис развёрнут на Render по адресу `https://pchelper-infra.onrender.com`,
 вики из 9 страниц опубликована, сайт GitHub Pages из 10 страниц доступен
-по адресу `https://alekseinarkevich.github.io/pchelper-infra/`.
+по адресу `https://alekseinarkevich.github.io/pchelper-store/`.

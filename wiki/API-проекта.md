@@ -2,11 +2,11 @@
 
 Задания 3 и 4 — проектирование маршрутов, конечных точек и их тестирование.
 
-![Рис. 4 — карта маршрутов и конечных точек](https://alekseinarkevich.github.io/pchelper-infra/img/05-routes-endpoints.png)
+![Рис. 4 — карта маршрутов и конечных точек](https://alekseinarkevich.github.io/pchelper-store/img/05-routes-endpoints.png)
 
 *Рис. 4 — карта маршрутов и конечных точек*
 
-![Рис. 5 — сопоставление вариантов использования с HTTP-методами](https://alekseinarkevich.github.io/pchelper-infra/img/06-usecase-endpoint-mapping.png)
+![Рис. 5 — сопоставление вариантов использования с HTTP-методами](https://alekseinarkevich.github.io/pchelper-store/img/06-usecase-endpoint-mapping.png)
 
 *Рис. 5 — сопоставление вариантов использования с HTTP-методами*
 
@@ -30,9 +30,9 @@
 
 ## Карта маршрутов (рис. 4 методички)
 
-**Файл:** [`05-routes-endpoints.puml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/05-routes-endpoints.puml)
+**Файл:** [`05-routes-endpoints.puml`](https://github.com/AlekseiNarkevich/pchelper-store/blob/main/diagrams/plantuml/05-routes-endpoints.puml)
 
-![Рис. 11. Проектирование маршрутов и конечных точек API](https://alekseinarkevich.github.io/pchelper-infra/img/05-routes-endpoints.png)
+![Рис. 11. Проектирование маршрутов и конечных точек API](https://alekseinarkevich.github.io/pchelper-store/img/05-routes-endpoints.png)
 
 #### Сводная таблица маршрутов
 
@@ -80,9 +80,9 @@
 
 ## Сопоставление вариантов использования с конечными точками (рис. 5 методички)
 
-**Файл:** [`06-usecase-endpoint-mapping.puml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/06-usecase-endpoint-mapping.puml)
+**Файл:** [`06-usecase-endpoint-mapping.puml`](https://github.com/AlekseiNarkevich/pchelper-store/blob/main/diagrams/plantuml/06-usecase-endpoint-mapping.puml)
 
-![Рис. 12. Сопоставление вариантов использования и конечных точек API](https://alekseinarkevich.github.io/pchelper-infra/img/06-usecase-endpoint-mapping.png)
+![Рис. 12. Сопоставление вариантов использования и конечных точек API](https://alekseinarkevich.github.io/pchelper-store/img/06-usecase-endpoint-mapping.png)
 
 #### Таблица соответствия UC ↔ HTTP-метод ↔ маршрут ↔ коды ответа
 
@@ -263,7 +263,7 @@
 
 ## Открытая спецификация и интерактивная документация
 
-1. Спецификация [`api/openapi.yaml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/api/openapi.yaml) хранится рядом с кодом лабораторной
+1. Спецификация [`api/openapi.yaml`](https://github.com/AlekseiNarkevich/pchelper-store/blob/main/api/openapi.yaml) хранится рядом с кодом лабораторной
    работы и проверяется линтером Redocly на каждом запуске конвейера.
 2. Из того же файла собирается интерактивная документация Redoc, где
    каждая операция раскрывается с примерами запроса, примерами ответа,
@@ -290,7 +290,7 @@
    проекта — на странице вики «API-проекта» и на странице сайта
    `api.html` (раздел 4.6).
 
-![Рис. 14. Интерактивная документация API (Redoc)](https://alekseinarkevich.github.io/pchelper-infra/img/shots/12-api-reference-redoc.png)
+![Рис. 14. Интерактивная документация API (Redoc)](https://alekseinarkevich.github.io/pchelper-store/img/shots/12-api-reference-redoc.png)
 
 ---
 
@@ -327,7 +327,7 @@
    Учётная запись **не нужна**: Bruno — открытое офлайн-приложение,
    коллекция лежит на диске в виде обычных файлов и никуда не отправляется.
 2. На стартовом экране выбрать **Import from OpenAPI** и указать файл
-   [`api/openapi.yaml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/api/openapi.yaml). В диалоге импорта оставить формат
+   [`api/openapi.yaml`](https://github.com/AlekseiNarkevich/pchelper-store/blob/main/api/openapi.yaml). В диалоге импорта оставить формат
    **OpenCollection (YAML)** и разбивку **по тегам** — тогда Bruno
    создаст 9 папок по тегам спецификации и 41 запрос с описаниями,
    схемами тел и примерами ответов. Имя коллекции берётся из поля
@@ -337,7 +337,7 @@
    Готовая коллекция из той же спецификации лежит в репозитории —
    `bruno/pchelper-collection.json`.
 3. Приложить спецификацию к коллекции: **API Specs → +** → тот же
-   [`api/openapi.yaml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/api/openapi.yaml). По ней Bruno строит mock-сервер.
+   [`api/openapi.yaml`](https://github.com/AlekseiNarkevich/pchelper-store/blob/main/api/openapi.yaml). По ней Bruno строит mock-сервер.
 4. Выбрать окружение **Локальная разработка (Docker Compose)**:
 
 | Переменная | Значение |
@@ -358,10 +358,10 @@
    свободный. Облачный адрес вида `https://xxxxxxxx.usebruno.com`
    относится к платному тарифу и в этой лабораторной работе не используется.
 
-![Рис. 15. Коллекция Bruno: 9 папок по тегам и 41 запрос](https://alekseinarkevich.github.io/pchelper-infra/img/shots/13-bruno-collection.png)
+![Рис. 15. Коллекция Bruno: 9 папок по тегам и 41 запрос](https://alekseinarkevich.github.io/pchelper-store/img/shots/13-bruno-collection.png)
 
 
-![Рис. 16. Mock-сервер Bruno: 41 маршрут и 129 ответов из спецификации](https://alekseinarkevich.github.io/pchelper-infra/img/shots/14-bruno-mock-server.png)
+![Рис. 16. Mock-сервер Bruno: 41 маршрут и 129 ответов из спецификации](https://alekseinarkevich.github.io/pchelper-store/img/shots/14-bruno-mock-server.png)
 
 ## Тестирование спецификации на Mock-сервере
 
@@ -421,7 +421,7 @@
 
 **Как читать графу «Фактически».** Mock-сервер Bruno не выполняет
 бизнес-логику приложения: он подставляет готовые примеры ответов из
-спецификации [`api/openapi.yaml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/api/openapi.yaml). Поэтому фактический код внутри тела
+спецификации [`api/openapi.yaml`](https://github.com/AlekseiNarkevich/pchelper-store/blob/main/api/openapi.yaml). Поэтому фактический код внутри тела
 может отличаться от того, который ожидался по постановке задачи, —
 пример для TC-08 спецификация отдаёт ошибку `PSU_INSUFFICIENT`, а не
 `socket`. Проверяется класс ответа (200 / 4xx) и наличие ожидаемых
@@ -434,12 +434,12 @@
 отправленного заказа), TC-32 (недопустимый переход статуса),
 TC-24 (фиксация снимка цен) и TC-08 (проверка совместимости).
 
-![Рис. 17. Тест-кейс TC-08: проверканесовместимой сборки, ответ 200](https://alekseinarkevich.github.io/pchelper-infra/img/shots/15-bruno-tc08-validate.png)
+![Рис. 17. Тест-кейс TC-08: проверканесовместимой сборки, ответ 200](https://alekseinarkevich.github.io/pchelper-store/img/shots/15-bruno-tc08-validate.png)
 
 
-![Рис. 18. Тест-кейс TC-33: админ-ресурс для покупателя, ответ 403](https://alekseinarkevich.github.io/pchelper-infra/img/shots/16-bruno-tc33-forbidden.png)
+![Рис. 18. Тест-кейс TC-33: админ-ресурс для покупателя, ответ 403](https://alekseinarkevich.github.io/pchelper-store/img/shots/16-bruno-tc33-forbidden.png)
 
-![Рис. 19. Протокол тестирования: 39тест-кейсов, 39 пройдено](https://alekseinarkevich.github.io/pchelper-infra/img/shots/17-bruno-test-protocol.png)
+![Рис. 19. Протокол тестирования: 39тест-кейсов, 39 пройдено](https://alekseinarkevich.github.io/pchelper-store/img/shots/17-bruno-test-protocol.png)
 
 ## Проверка спецификации линтером
 

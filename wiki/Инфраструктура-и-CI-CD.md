@@ -3,23 +3,23 @@
 Задание 6 — контейнеризация, непрерывная интеграция, проверка
 качества кода и развёртывание.
 
-![Инфраструктура на Docker и Docker Compose](https://alekseinarkevich.github.io/pchelper-infra/img/10-docker-infrastructure.png)
+![Инфраструктура на Docker и Docker Compose](https://alekseinarkevich.github.io/pchelper-store/img/10-docker-infrastructure.png)
 
 *Инфраструктура на Docker и Docker Compose*
 
-![Конвейер GitHub Actions с этапом проверки качества](https://alekseinarkevich.github.io/pchelper-infra/img/11-cicd-pipeline.png)
+![Конвейер GitHub Actions с этапом проверки качества](https://alekseinarkevich.github.io/pchelper-store/img/11-cicd-pipeline.png)
 
 *Конвейер GitHub Actions с этапом проверки качества*
 
-![Репозитории и модель веток](https://alekseinarkevich.github.io/pchelper-infra/img/12-repo-branches.png)
+![Репозитории и модель веток](https://alekseinarkevich.github.io/pchelper-store/img/12-repo-branches.png)
 
 *Репозитории и модель веток*
 
 ## Структура репозиториев и модель веток
 
-**Файл:** [`12-repo-branches.puml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/12-repo-branches.puml)
+**Файл:** [`12-repo-branches.puml`](https://github.com/AlekseiNarkevich/pchelper-store/blob/main/diagrams/plantuml/12-repo-branches.puml)
 
-![Рис. 30. Репозитории PCHelper и модель веток](https://alekseinarkevich.github.io/pchelper-infra/img/12-repo-branches.png)
+![Рис. 30. Репозитории PCHelper и модель веток](https://alekseinarkevich.github.io/pchelper-store/img/12-repo-branches.png)
 
 #### Репозитории
 
@@ -27,7 +27,7 @@
 
 | Репозиторий | Назначение | Состояние |
 |-------------|-----------|-----------|
-| [`AlekseiNarkevich/pchelper-infra`](https://github.com/AlekseiNarkevich/pchelper-infra) | Документация лабораторной работы, вики, GitHub Pages, Docker-окружение, CI/CD, SonarQube, развёртывание | **рабочий**: конвейер зелёный, сервис доступен на `pchelper-infra.onrender.com` |
+| [`AlekseiNarkevich/pchelper-store`](https://github.com/AlekseiNarkevich/pchelper-store) | Документация лабораторной работы, вики, GitHub Pages, Docker-окружение, CI/CD, SonarQube, развёртывание | **рабочий**: конвейер зелёный, сервис доступен на `pchelper-infra.onrender.com` |
 
 Задание 6, пункт 2 требует разнести проект по репозиториям бекенда,
 веб- и мобильной версии. Целевая структура курсовой работы — четыре
@@ -38,7 +38,7 @@
 
 **Репозиторий, в котором выполняется задание 6.** Конвейер CI/CD, проверка
 качества кода и развёртывание выполняются в отдельном личном репозитории
-[`AlekseiNarkevich/pchelper-infra`](https://github.com/AlekseiNarkevich/pchelper-infra).
+[`AlekseiNarkevich/pchelper-store`](https://github.com/AlekseiNarkevich/pchelper-store).
 Это сознательное решение: инфраструктура задания 6 — учебный стенд, который
 поднимается одной командой `docker compose up -d --build`, и выносить его
 в отдельный репозиторий преждевременно, пока нечего переносить. Структура:
@@ -93,7 +93,7 @@ pchelper-infra/
    успешная сборка образа.
 5. Сообщения коммитов — на английском в формате Conventional Commits.
 
-![Рис. 31. Репозиторий pchelper-infra на GitHub](https://alekseinarkevich.github.io/pchelper-infra/img/shots/29-github-repo-code.png)
+![Рис. 31. Репозиторий pchelper-infra на GitHub](https://alekseinarkevich.github.io/pchelper-store/img/shots/29-github-repo-code.png)
 
 
 
@@ -167,13 +167,13 @@ pchelper-infra/
 открытая работа, а не искусственно разложенные выполненные задачи.
 Все 18 задач лабораторной работы лежат в *Done*.
 
-![Рис. 32. Доска «Разработка API и бизнес-логики»: четыре списка, карточки задач с исполнителями](https://alekseinarkevich.github.io/pchelper-infra/img/shots/31-github-projects.png)
+![Рис. 32. Доска «Разработка API и бизнес-логики»: четыре списка, карточки задач с исполнителями](https://alekseinarkevich.github.io/pchelper-store/img/shots/31-github-projects.png)
 
 ## Docker-инфраструктура
 
-**Файл:** [`10-docker-infrastructure.puml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/10-docker-infrastructure.puml)
+**Файл:** [`10-docker-infrastructure.puml`](https://github.com/AlekseiNarkevich/pchelper-store/blob/main/diagrams/plantuml/10-docker-infrastructure.puml)
 
-![Рис. 34. Инфраструктура PCHelper на Docker и Docker Compose](https://alekseinarkevich.github.io/pchelper-infra/img/10-docker-infrastructure.png)
+![Рис. 34. Инфраструктура PCHelper на Docker и Docker Compose](https://alekseinarkevich.github.io/pchelper-store/img/10-docker-infrastructure.png)
 
 Это **уточнение** диаграммы развёртывания из лабораторной работы 3
 (`20-deployment.puml`): в ней появились контейнеры, порты, healthcheck,
@@ -290,7 +290,7 @@ docker compose down        # остановить контейнеры, тома
 docker compose down -v     # остановить и удалить тома с данными
 ```
 
-![Рис. 35. Состояние контейнеров стенда: все четыре healthy](https://alekseinarkevich.github.io/pchelper-infra/img/shots/34-docker-compose-ps.png)
+![Рис. 35. Состояние контейнеров стенда: все четыре healthy](https://alekseinarkevich.github.io/pchelper-store/img/shots/34-docker-compose-ps.png)
 
 ## Автоматические тесты в CI
 
@@ -324,7 +324,7 @@ $ cd ЛР4/mcp && pytest -q
 39 passed
 ```
 
-**Механизм блокировки сборки** в [`.github/workflows/ci.yml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/.github/workflows/ci.yml):
+**Механизм блокировки сборки** в [`.github/workflows/ci.yml`](https://github.com/AlekseiNarkevich/pchelper-store/blob/main/.github/workflows/ci.yml):
 
 ```yaml
 # build-and-push объявлен через needs: [ test, sonar ].
@@ -343,13 +343,13 @@ SonarQube через `sonar.javascript.lcov.reportPaths`, поэтому сни�
 исключён из репозитория через `.gitignore`.
 
 
-![Рис. 37. Прогон конвейера № 29: все шесть этапов зелёные](https://alekseinarkevich.github.io/pchelper-infra/img/shots/36-github-actions-run.png)
+![Рис. 37. Прогон конвейера № 29: все шесть этапов зелёные](https://alekseinarkevich.github.io/pchelper-store/img/shots/36-github-actions-run.png)
 
 ## CI/CD-конвейер
 
-**Файл:** [`11-cicd-pipeline.puml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/11-cicd-pipeline.puml)
+**Файл:** [`11-cicd-pipeline.puml`](https://github.com/AlekseiNarkevich/pchelper-store/blob/main/diagrams/plantuml/11-cicd-pipeline.puml)
 
-![Рис. 38. CI/CD-конвейер PCHelper (GitHub Actions + SonarQube + Docker + Render)](https://alekseinarkevich.github.io/pchelper-infra/img/11-cicd-pipeline.png)
+![Рис. 38. CI/CD-конвейер PCHelper (GitHub Actions + SonarQube + Docker + Render)](https://alekseinarkevich.github.io/pchelper-store/img/11-cicd-pipeline.png)
 
 #### Этапы конвейера
 
@@ -529,9 +529,9 @@ sonar.qualitygate.timeout=300
 Обратите внимание на строку `sonar.openapi.path` — SonarQube умеет
 анализировать спецификацию Open API и показывает проблемы в контракте.
 
-![Рис. 39. SonarCloud: дашборд проекта и метрики](https://alekseinarkevich.github.io/pchelper-infra/img/shots/38-sonarcloud-summary.png)
+![Рис. 39. SonarCloud: дашборд проекта и метрики](https://alekseinarkevich.github.io/pchelper-store/img/shots/38-sonarcloud-summary.png)
 
-![Рис. 40. SonarCloud: Quality Gate в статусе Passed](https://alekseinarkevich.github.io/pchelper-infra/img/shots/39-sonarcloud-quality.png)
+![Рис. 40. SonarCloud: Quality Gate в статусе Passed](https://alekseinarkevich.github.io/pchelper-store/img/shots/39-sonarcloud-quality.png)
 
 ## Развёртывание на бесплатной платформе
 
@@ -545,7 +545,7 @@ sonar.qualitygate.timeout=300
 #### Настройка Render
 
 1. `render.com` → **New → Web Service** → подключить репозиторий
-   [`AlekseiNarkevich/pchelper-infra`](https://github.com/AlekseiNarkevich/pchelper-infra)
+   [`AlekseiNarkevich/pchelper-store`](https://github.com/AlekseiNarkevich/pchelper-store)
    (Root Directory: `backend`).
 2. **Build Command:** Render сам выполнит `docker build` по `Dockerfile` из
    каталога `backend` — отдельная команда не нужна.
