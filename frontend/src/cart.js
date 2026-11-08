@@ -37,6 +37,7 @@ export function addToCart(product) {
       id: product.id,
       name: product.name,
       price: product.price,
+      imageUrl: product.imageUrl || null,
       qty: 1,
     });
   }
@@ -46,6 +47,29 @@ export function addToCart(product) {
 /** Общее количество единиц товара. */
 export function cartCount() {
   return readCart().reduce((sum, item) => sum + item.qty, 0);
+}
+
+/** Сумма корзины в рублях. */
+export function cartTotal() {
+  return readCart().reduce((sum, item) => sum + item.price * item.qty, 0);
+}
+
+/** Меняет количество позиции; ноль удаляет её из корзины. */
+export function setQty(id, qty) {
+  const items = readCart()
+    .map((item) => (item.id === id ? { ...item, qty } : item))
+    .filter((item) => item.qty > 0);
+  writeCart(items);
+}
+
+/** Удаляет позицию из корзины. */
+export function removeItem(id) {
+  writeCart(readCart().filter((item) => item.id !== id));
+}
+
+/** Очищает корзину. */
+export function clearCart() {
+  writeCart([]);
 }
 
 /** Подписка на изменение корзины; возвращает функцию отписки. */

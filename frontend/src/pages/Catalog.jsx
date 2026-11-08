@@ -86,14 +86,8 @@ export default function Catalog() {
     <div className="container">
       <div className="breadcrumbs">
         <Link to="/">Главная</Link>
-        <span>/</span>
         <span>Каталог</span>
-        {current && (
-          <>
-            <span>/</span>
-            <span>{current.name}</span>
-          </>
-        )}
+        {current && <span>{current.name}</span>}
       </div>
 
       <div className="chips">

@@ -90,11 +90,12 @@ export default function Product() {
     <div className="container">
       <div className="breadcrumbs">
         <Link to="/">Главная</Link>
-        <span>/</span>
-        <Link to="/catalog">Каталог</Link>
-        <span>/</span>
-        <Link to={`/catalog/${product.category}`}>{product.categoryName}</Link>
-        <span>/</span>
+        <span>
+          <Link to="/catalog">Каталог</Link>
+        </span>
+        <span>
+          <Link to={`/catalog/${product.category}`}>{product.categoryName}</Link>
+        </span>
         <span>{product.name}</span>
       </div>
 

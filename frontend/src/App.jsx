@@ -2,9 +2,11 @@ import { Route, Routes } from 'react-router-dom';
 
 import Footer from './components/Footer.jsx';
 import Header from './components/Header.jsx';
+import Cart from './pages/Cart.jsx';
 import Catalog from './pages/Catalog.jsx';
 import Home from './pages/Home.jsx';
 import NotFound from './pages/NotFound.jsx';
+import Prebuilt from './pages/Prebuilt.jsx';
 import Product from './pages/Product.jsx';
 
 /**
@@ -21,6 +23,8 @@ export default function App() {
           <Route path="/catalog" element={<Catalog />} />
           <Route path="/catalog/:category" element={<Catalog />} />
           <Route path="/product/:id" element={<Product />} />
+          <Route path="/prebuilt" element={<Prebuilt />} />
+          <Route path="/cart" element={<Cart />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>

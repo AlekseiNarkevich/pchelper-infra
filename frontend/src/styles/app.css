@@ -322,7 +322,7 @@ select {
   color: var(--text-faint);
   padding: var(--space-4) 0 0;
 }
-.breadcrumbs span + span::before {
+.breadcrumbs > * + *::before {
   content: ' / ';
 }
 
