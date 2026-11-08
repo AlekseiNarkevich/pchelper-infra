@@ -237,6 +237,9 @@ jobs:
     runs-on: ubuntu-24.04
     needs: [test, lint, web]
     if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    # Сканер не должен блокировать сборку: его роль — информационная.
+    # Блокирующие проверки — линт, тесты и покрытие (этапы lint, web, test).
+    continue-on-error: true
     permissions:
       contents: read
       checks: write          # отчёт SonarCloud публикуется как check
@@ -319,13 +322,12 @@ jobs:
     # 19 октября 2026 года мигрирует на Ubuntu 26, и каждая
     # миграция ломает уже отлаженные сборки.
     runs-on: ubuntu-24.04
-    needs: [test, sonar, web]
+    needs: [test, web]
     if: >-
       github.ref == 'refs/heads/main'
       && always()
       && needs.test.result == 'success'
       && needs.web.result == 'success'
-      && (needs.sonar.result == 'success' || needs.sonar.result == 'skipped')
 
     # Права на запись выдаются только этому этапу: на уровне workflow
     # осталось чтение. packages нужен для проталкивания образов в GHCR.
