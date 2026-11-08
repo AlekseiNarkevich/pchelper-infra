@@ -65,9 +65,9 @@ export default function Home() {
           <Link className="btn" to="/catalog">
             Перейти в каталог
           </Link>
-          <a className="btn btn-secondary" href="#prebuilt">
+          <Link className="btn btn-secondary" to="/prebuilt">
             Готовые сборки
-          </a>
+          </Link>
         </div>
       </section>
 
@@ -131,8 +131,18 @@ export default function Home() {
       </section>
 
       <section className="section" id="prebuilt">
-        <div className="h2" style={{ marginBottom: 14 }}>
-          Готовые сборки
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'baseline',
+            justifyContent: 'space-between',
+            marginBottom: 14,
+          }}
+        >
+          <div className="h2">Готовые сборки</div>
+          <Link className="small" to="/prebuilt">
+            Все сборки →
+          </Link>
         </div>
         {loading ? (
           <div className="skeleton" />
