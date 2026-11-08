@@ -11,7 +11,7 @@
     "test": "node --test tests/health.test.js tests/catalog.test.js",
     "test:smoke": "node --test tests/smoke.test.js",
     "test:ci": "node --test tests/health.test.js tests/catalog.test.js",
-    "test:coverage": "c8 --reporter=text --reporter=lcov node --test tests/health.test.js tests/catalog.test.js",
+    "test:coverage": "c8 --reporter=text --reporter=lcov --check-coverage --lines 70 node --test tests/health.test.js tests/catalog.test.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
