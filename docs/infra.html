@@ -15,13 +15,13 @@
 <main class="wrap">
 <figure><img src="img/10-docker-infrastructure.png" alt="Инфраструктура на Docker и Docker Compose" loading="lazy"><figcaption>Инфраструктура на Docker и Docker Compose</figcaption></figure><figure><img src="img/11-cicd-pipeline.png" alt="Конвейер GitHub Actions с этапом SonarQube" loading="lazy"><figcaption>Конвейер GitHub Actions с этапом SonarQube</figcaption></figure><figure><img src="img/12-repo-branches.png" alt="Репозитории и модель веток" loading="lazy"><figcaption>Репозитории и модель веток</figcaption></figure>
 <h3>Структура репозиториев и модель веток</h3>
-<p><strong>Файл:</strong> <a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/12-repo-branches.puml"><code>diagrams/plantuml/12-repo-branches.puml</code></a></p>
-<p><img src="https://alekseinarkevich.github.io/pchelper-infra/img/12-repo-branches.png" alt="Рис. 30. Репозитории PCHelper и модель веток"></p>
+<p><strong>Файл:</strong> <a href="https://github.com/AlekseiNarkevich/pchelper-store/blob/main/diagrams/plantuml/12-repo-branches.puml"><code>diagrams/plantuml/12-repo-branches.puml</code></a></p>
+<p><img src="https://alekseinarkevich.github.io/pchelper-store/img/12-repo-branches.png" alt="Рис. 30. Репозитории PCHelper и модель веток"></p>
 <h5>Репозитории</h5>
 <p><strong>Фактически создан один репозиторий</strong> — инфраструктурный стенд задания 6:</p>
-<div class='table-wrap'><table><thead><tr><th>Репозиторий</th><th>Назначение</th><th>Состояние</th></tr></thead><tbody><tr><td><a href="https://github.com/AlekseiNarkevich/pchelper-infra"><code>AlekseiNarkevich/pchelper-infra</code></a></td><td>Документация лабораторной работы, вики, GitHub Pages, Docker-окружение, CI/CD, SonarQube, развёртывание</td><td><strong>рабочий</strong>: конвейер зелёный, сервис доступен на <code>pchelper-infra.onrender.com</code></td></tr></tbody></table></div>
+<div class='table-wrap'><table><thead><tr><th>Репозиторий</th><th>Назначение</th><th>Состояние</th></tr></thead><tbody><tr><td><a href="https://github.com/AlekseiNarkevich/pchelper-store"><code>AlekseiNarkevich/pchelper-store</code></a></td><td>Документация лабораторной работы, вики, GitHub Pages, Docker-окружение, CI/CD, SonarQube, развёртывание</td><td><strong>рабочий</strong>: конвейер зелёный, сервис доступен на <code>pchelper-infra.onrender.com</code></td></tr></tbody></table></div>
 <p>Задание 6, пункт 2 требует разнести проект по репозиториям бекенда, веб- и мобильной версии. Целевая структура курсовой работы — четыре репозитория в организации <code>fpmi-hci-2026</code>: документация, серверное приложение и API, веб-клиент и мобильный клиент. На момент сдачи лабораторной работы они не созданы, поэтому в отчёте ссылки на них не приводятся — вместо них показано то, что действительно сделано.</p>
-<p><strong>Репозиторий, в котором выполняется задание 6.</strong> Конвейер CI/CD, проверка качества кода и развёртывание выполняются в отдельном личном репозитории <a href="https://github.com/AlekseiNarkevich/pchelper-infra"><code>AlekseiNarkevich/pchelper-infra</code></a>. Это сознательное решение: инфраструктура задания 6 — учебный стенд, который поднимается одной командой <code>docker compose up -d --build</code>, и выносить его в отдельный репозиторий преждевременно, пока нечего переносить. Структура:</p>
+<p><strong>Репозиторий, в котором выполняется задание 6.</strong> Конвейер CI/CD, проверка качества кода и развёртывание выполняются в отдельном личном репозитории <a href="https://github.com/AlekseiNarkevich/pchelper-store"><code>AlekseiNarkevich/pchelper-store</code></a>. Это сознательное решение: инфраструктура задания 6 — учебный стенд, который поднимается одной командой <code>docker compose up -d --build</code>, и выносить его в отдельный репозиторий преждевременно, пока нечего переносить. Структура:</p>
 <pre><code>pchelper-infra/
 ├── .github/workflows/ci.yml     # конвейер из шести этапов
 ├── docker-compose.yml           # postgres, redis, api, web, mcp
@@ -46,7 +46,7 @@
 <ol><li>Merge в <code>main</code> только при зелёных проверках: тесты, Quality Gate,</li></ol>
 <p>успешная сборка образа.</p>
 <ol><li>Сообщения коммитов — на английском в формате Conventional Commits.</li></ol>
-<p><img src="https://alekseinarkevich.github.io/pchelper-infra/img/shots/29-github-repo-code.png" alt="Рис. 31. Репозиторий pchelper-infra на GitHub"></p>
+<p><img src="https://alekseinarkevich.github.io/pchelper-store/img/shots/29-github-repo-code.png" alt="Рис. 31. Репозиторий pchelper-infra на GitHub"></p>
 <p><strong>Как настраивается (пошагово):</strong></p>
 <ol><li>*Settings → Rulesets → **New ruleset*<strong> → в выпадающем списке </strong>Branch**.</li><li><strong>Ruleset Name:</strong> <code>Protect main</code>.</li><li><strong>Enforcement status:</strong> <code>Active</code> (не <code>Disabled</code> и не <code>Evaluate</code>).</li><li><strong>Rules → Target branches → Include:</strong> добавить <code>refs/heads/main</code>.</li><li>Включить правила:</li></ol>
 <ul><li><strong>Require a pull request before merging</strong> — Required approvals: <code>1</code></li></ul>
@@ -57,8 +57,8 @@
 <ol><li><strong>Require status checks to pass before merging</strong> — включить</li></ol>
 <p><em>после</em> первого прогона workflow: GitHub показывает в списке только те проверки, которые уже отработали хотя бы раз. Добавить: <code>lint</code>, <code>unit-and-integration</code>, <code>openapi-spec</code>, <code>sonar-quality-gate</code>, <code>build-and-push</code>.</p>
 <h3>Docker-инфраструктура</h3>
-<p><strong>Файл:</strong> <a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/10-docker-infrastructure.puml"><code>diagrams/plantuml/10-docker-infrastructure.puml</code></a></p>
-<p><img src="https://alekseinarkevich.github.io/pchelper-infra/img/10-docker-infrastructure.png" alt="Рис. 34. Инфраструктура PCHelper на Docker и Docker Compose"></p>
+<p><strong>Файл:</strong> <a href="https://github.com/AlekseiNarkevich/pchelper-store/blob/main/diagrams/plantuml/10-docker-infrastructure.puml"><code>diagrams/plantuml/10-docker-infrastructure.puml</code></a></p>
+<p><img src="https://alekseinarkevich.github.io/pchelper-store/img/10-docker-infrastructure.png" alt="Рис. 34. Инфраструктура PCHelper на Docker и Docker Compose"></p>
 <p>Это <strong>уточнение</strong> диаграммы развёртывания из лабораторной работы 3 (<code>20-deployment.puml</code>): в ней появились контейнеры, порты, healthcheck, тома и профиль тестового окружения.</p>
 <h5>Состав окружения</h5>
 <div class='table-wrap'><table><thead><tr><th>Контейнер</th><th>Образ</th><th>Порт</th><th>Healthcheck</th><th>Volume</th></tr></thead><tbody><tr><td><code>pchelper-web</code></td><td>сборка React → <code>nginx:1.27-alpine</code></td><td>8080:80</td><td><code>wget http://127.0.0.1/</code></td><td>—</td></tr><tr><td><code>pchelper-api</code></td><td><code>node:20-alpine</code>, многостадийная сборка</td><td>3001:3001</td><td><code>wget …/api/v1/health</code></td><td>—</td></tr><tr><td><code>pchelper-mcp</code></td><td><code>python:3.12-slim</code> (профиль <code>mcp</code>)</td><td>8081:8080</td><td>HTTP-проверка <code>/mcp</code></td><td><code>mcpdata</code></td></tr><tr><td><code>pchelper-postgres</code></td><td><code>postgres:15-alpine</code></td><td>5432:5432</td><td><code>pg_isready</code></td><td><code>pgdata</code></td></tr><tr><td><code>pchelper-redis</code></td><td><code>redis:7-alpine</code></td><td>6379:6379</td><td><code>redis-cli ping</code></td><td><code>redisdata</code></td></tr><tr><td><code>pchelper-tests</code></td><td>backend target <code>dev</code> (профиль <code>test</code>)</td><td>—</td><td>—</td><td>—</td></tr></tbody></table></div>
@@ -130,7 +130,7 @@ pchelper-web        pchelper/web:1.0.0   web        Up 16 seconds (healthy)   0.
 <p>Остановка и удаление:</p>
 <pre class="lang-bash"><code>docker compose down        # остановить контейнеры, тома останутся
 docker compose down -v     # остановить и удалить тома с данными</code></pre>
-<p><img src="https://alekseinarkevich.github.io/pchelper-infra/img/shots/34-docker-compose-ps.png" alt="Рис. 35. Состояние контейнеров стенда: все четыре healthy"></p>
+<p><img src="https://alekseinarkevich.github.io/pchelper-store/img/shots/34-docker-compose-ps.png" alt="Рис. 35. Состояние контейнеров стенда: все четыре healthy"></p>
 <h3>Автоматические тесты в CI</h3>
 <p>Требование задания 6, пункт 6: «Добавить автоматические тесты, чтобы сервер CI перед сборкой выполнял тесты и формировал сборку только после их прохождения».</p>
 <div class='table-wrap'><table><thead><tr><th>Группа</th><th>Что проверяет</th><th>Файл</th></tr></thead><tbody><tr><td>Юнит-тесты API</td><td><code>/health</code>, <code>/hello</code>, <code>/hello/db</code>, 403 без роли, 200 с ролью, 404 в JSON-формате</td><td><code>infra/backend/tests/health.test.js</code> — <strong>9 тестов</strong></td></tr><tr><td>Smoke-тесты в контейнере</td><td>Те же маршруты, но через сеть Docker Compose и реальный контейнер</td><td><code>infra/backend/tests/smoke.test.js</code> — <strong>5 тестов</strong></td></tr><tr><td>MCP</td><td>39 юнит-тестов доменной логики</td><td><code>mcp/tests/test_services.py</code></td></tr><tr><td><strong>Итого</strong></td><td><strong>52 автоматических теста</strong></td><td></td></tr></tbody></table></div>
@@ -148,7 +148,7 @@ $ docker compose --profile test run --rm tests
 
 $ cd ЛР4/mcp &amp;&amp; pytest -q
 39 passed</code></pre>
-<p><strong>Механизм блокировки сборки</strong> в <a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/.github/workflows/ci.yml"><code>.github/workflows/ci.yml</code></a>:</p>
+<p><strong>Механизм блокировки сборки</strong> в <a href="https://github.com/AlekseiNarkevich/pchelper-store/blob/main/.github/workflows/ci.yml"><code>.github/workflows/ci.yml</code></a>:</p>
 <pre class="lang-yaml"><code># build-and-push объявлен через needs: [ test, sonar ].
 # Пока хотя бы один из этих этапов не завершился успешно,
 # сборка образа НЕ начинается — и образ не попадает в реестр.
@@ -156,10 +156,10 @@ build-and-push:
   needs: [ test, sonar ]
   …                              # тело job: сборка и push в GHCR</code></pre>
 <p>Покрытие кода считается инструментом <strong>c8</strong> (<code>npm run test:coverage</code>) в формате LCOV, выгружается артефактом <code>coverage</code> и передаётся в SonarQube через <code>sonar.javascript.lcov.reportPaths</code>, поэтому снижение покрытия видно в отчёте о качестве. Фактическое покрытие backend — <strong>95,47 % инструкций</strong>, 100 % функций. Сам каталог <code>coverage/</code> исключён из репозитория через <code>.gitignore</code>.</p>
-<p><img src="https://alekseinarkevich.github.io/pchelper-infra/img/shots/36-github-actions-run.png" alt="Рис. 37. Прогон конвейера № 29: все шесть этапов зелёные"></p>
+<p><img src="https://alekseinarkevich.github.io/pchelper-store/img/shots/36-github-actions-run.png" alt="Рис. 37. Прогон конвейера № 29: все шесть этапов зелёные"></p>
 <h3>CI/CD-конвейер</h3>
-<p><strong>Файл:</strong> <a href="https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/11-cicd-pipeline.puml"><code>diagrams/plantuml/11-cicd-pipeline.puml</code></a></p>
-<p><img src="https://alekseinarkevich.github.io/pchelper-infra/img/11-cicd-pipeline.png" alt="Рис. 38. CI/CD-конвейер PCHelper (GitHub Actions + SonarQube + Docker + Render)"></p>
+<p><strong>Файл:</strong> <a href="https://github.com/AlekseiNarkevich/pchelper-store/blob/main/diagrams/plantuml/11-cicd-pipeline.puml"><code>diagrams/plantuml/11-cicd-pipeline.puml</code></a></p>
+<p><img src="https://alekseinarkevich.github.io/pchelper-store/img/11-cicd-pipeline.png" alt="Рис. 38. CI/CD-конвейер PCHelper (GitHub Actions + SonarQube + Docker + Render)"></p>
 <h5>Этапы конвейера</h5>
 <pre><code>pull request → develop
   ├─ 0. lint              ESLint + Prettier --check
@@ -276,14 +276,14 @@ sonar.qualitygate.wait=true
 # Таймаут ожидания вердикта в секундах (5 минут)
 sonar.qualitygate.timeout=300</code></pre>
 <p>Обратите внимание на строку <code>sonar.openapi.path</code> — SonarQube умеет анализировать спецификацию Open API и показывает проблемы в контракте.</p>
-<p><img src="https://alekseinarkevich.github.io/pchelper-infra/img/shots/38-sonarcloud-summary.png" alt="Рис. 39. SonarCloud: дашборд проекта и метрики"></p>
-<p><img src="https://alekseinarkevich.github.io/pchelper-infra/img/shots/39-sonarcloud-quality.png" alt="Рис. 40. SonarCloud: Quality Gate в статусе Passed"></p>
+<p><img src="https://alekseinarkevich.github.io/pchelper-store/img/shots/38-sonarcloud-summary.png" alt="Рис. 39. SonarCloud: дашборд проекта и метрики"></p>
+<p><img src="https://alekseinarkevich.github.io/pchelper-store/img/shots/39-sonarcloud-quality.png" alt="Рис. 40. SonarCloud: Quality Gate в статусе Passed"></p>
 <h3>Развёртывание на бесплатной платформе</h3>
 <p>Требование задания 6, пункт 13.</p>
 <div class='table-wrap'><table><thead><tr><th>Платформа</th><th>Что разворачивается</th><th>Тариф</th></tr></thead><tbody><tr><td><strong>Render</strong></td><td>Backend (контейнер Docker с <code>openapi.yaml</code>, тестами и Swagger)</td><td>Free (засыпает после 15 минут простоя)</td></tr><tr><td><strong>Vercel</strong> или локально</td><td>Веб-приложение React</td><td>Free</td></tr></tbody></table></div>
 <h5>Настройка Render</h5>
 <ol><li><code>render.com</code> → <strong>New → Web Service</strong> → подключить репозиторий</li></ol>
-<p><a href="https://github.com/AlekseiNarkevich/pchelper-infra"><code>AlekseiNarkevich/pchelper-infra</code></a> (Root Directory: <code>backend</code>).</p>
+<p><a href="https://github.com/AlekseiNarkevich/pchelper-store"><code>AlekseiNarkevich/pchelper-store</code></a> (Root Directory: <code>backend</code>).</p>
 <ol><li><strong>Build Command:</strong> Render сам выполнит <code>docker build</code> по <code>Dockerfile</code> из</li></ol>
 <p>каталога <code>backend</code> — отдельная команда не нужна.</p>
 <ol><li><strong>Start Command:</strong> задаётся в <code>Dockerfile</code> (<code>CMD ["node", "src/server.js"]</code>)</li><li><strong>Environment:</strong> переменные из <code>.env.example</code>; <code>DATABASE_URL</code> указывает</li></ol>
@@ -323,6 +323,6 @@ sonar.qualitygate.timeout=300</code></pre>
 [pchelper-api] Режим: production
 ==&gt; Your service is live</code></pre>
 </main>
-<footer>Лабораторная работа № 4 — PCHelper &middot; <a href="https://github.com/AlekseiNarkevich/pchelper-infra">репозиторий</a> &middot; <a href="https://pchelper-infra.onrender.com">развёрнутый сервис</a> &middot; <a href="https://sonarcloud.io/dashboard?id=AlekseiNarkevich_pchelper-infra">SonarCloud</a></footer>
+<footer>Лабораторная работа № 4 — PCHelper &middot; <a href="https://github.com/AlekseiNarkevich/pchelper-store">репозиторий</a> &middot; <a href="https://pchelper-infra.onrender.com">развёрнутый сервис</a> &middot; <a href="https://sonarcloud.io/dashboard?id=AlekseiNarkevich_pchelper-infra">SonarCloud</a></footer>
 </body>
 </html>

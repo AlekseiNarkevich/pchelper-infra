@@ -22,8 +22,8 @@
 
 | Ресурс | Адрес |
 |---------|-------|
-| Сайт документации | [https://alekseinarkevich.github.io/pchelper-infra](https://alekseinarkevich.github.io/pchelper-infra/) |
-| Репозиторий | [https://github.com/AlekseiNarkevich/pchelper-infra](https://github.com/AlekseiNarkevich/pchelper-infra) |
+| Сайт документации | [https://alekseinarkevich.github.io/pchelper-store](https://alekseinarkevich.github.io/pchelper-store/) |
+| Репозиторий | [https://github.com/AlekseiNarkevich/pchelper-store](https://github.com/AlekseiNarkevich/pchelper-store) |
 | Развёрнутый backend | [pchelper-infra.onrender.com](https://pchelper-infra.onrender.com) |
 | Проверка качества кода | [SonarCloud](https://sonarcloud.io/dashboard?id=AlekseiNarkevich_pchelper-infra) |
 

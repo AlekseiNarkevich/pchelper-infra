@@ -3,15 +3,15 @@
 Задание 5 — проектирование MCP-сервера для взаимодействия
 ИИ-ассистента с системой.
 
-![Архитектура MCP-сервера](https://alekseinarkevich.github.io/pchelper-infra/img/08-mcp-architecture.png)
+![Архитектура MCP-сервера](https://alekseinarkevich.github.io/pchelper-store/img/08-mcp-architecture.png)
 
 *Архитектура MCP-сервера*
 
-![JSON-схемы примитивов MCP: Tools, Resources, Prompts](https://alekseinarkevich.github.io/pchelper-infra/img/14-mcp-schema.png)
+![JSON-схемы примитивов MCP: Tools, Resources, Prompts](https://alekseinarkevich.github.io/pchelper-store/img/14-mcp-schema.png)
 
 *JSON-схемы примитивов MCP: Tools, Resources, Prompts*
 
-![Последовательность взаимодействия агента с системой](https://alekseinarkevich.github.io/pchelper-infra/img/09-mcp-sequence.png)
+![Последовательность взаимодействия агента с системой](https://alekseinarkevich.github.io/pchelper-store/img/09-mcp-sequence.png)
 
 *Последовательность взаимодействия агента с системой*
 
@@ -39,16 +39,16 @@ AI-ассистенту взаимодействовать с базой дан�
 | Требование из задания | Реализация | Где посмотреть |
 |-----------------------|-----------|----------------|
 | Описать сущности системы | 9 сущностей: Компонент (8 видов), Пользователь, Корзина, Заказ, Склад, Промокод, Справочник переходов, Аудит | `mcp/schema.sql`, раздел 5.3 |
-| Спроектировать JSON-схемы для Tools | 13 инструментов с типизированными сигнатурами; JSON Schema генерируется из них SDK | [`mcp/server.py`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/mcp/server.py), раздел 5.5 |
-| Определить Resources | 9 ресурсов `pchelper://` — каталог, правила, заказы, корзина, промокоды, аудит | [`mcp/server.py`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/mcp/server.py), раздел 5.6 |
-| Разработать Prompts | 5 шаблонов: сборка, проверка, возврат, отчёт, дайджест | [`mcp/server.py`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/mcp/server.py), раздел 5.7 |
+| Спроектировать JSON-схемы для Tools | 13 инструментов с типизированными сигнатурами; JSON Schema генерируется из них SDK | [`mcp/server.py`](https://github.com/AlekseiNarkevich/pchelper-store/blob/main/mcp/server.py), раздел 5.5 |
+| Определить Resources | 9 ресурсов `pchelper://` — каталог, правила, заказы, корзина, промокоды, аудит | [`mcp/server.py`](https://github.com/AlekseiNarkevich/pchelper-store/blob/main/mcp/server.py), раздел 5.6 |
+| Разработать Prompts | 5 шаблонов: сборка, проверка, возврат, отчёт, дайджест | [`mcp/server.py`](https://github.com/AlekseiNarkevich/pchelper-store/blob/main/mcp/server.py), раздел 5.7 |
 | Реализовать бекенд с mock-базой | SQLite `pchelper_mcp.db`, имена таблиц совпадают с `db/01…02` | `mcp/schema.sql`, `mcp/seed.sql` |
 | **Агент не может отменить доставленный заказ** | Три уровня защиты (сервис → справочник переходов → триггер БД) | `mcp/services.py` → `cancel_order`, раздел 5.8 |
-| **Resource `orders://recent`** | `pchelper://orders/recent` — последние 10 заказов с трек-номерами | [`mcp/server.py`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/mcp/server.py) → `resource_orders_recent` |
+| **Resource `orders://recent`** | `pchelper://orders/recent` — последние 10 заказов с трек-номерами | [`mcp/server.py`](https://github.com/AlekseiNarkevich/pchelper-store/blob/main/mcp/server.py) → `resource_orders_recent` |
 | **Tool `track_order` со строгим `tracking_number`** | Несовпадение с БД → ошибка с указанием прочитать ресурс | `mcp/services.py` → `track_order`, раздел 5.8 |
 | Логирование действий агента | `audit.py`: время, агент, примитив, аргументы, результат, код, PII-маскирование | `mcp/audit.py`, раздел 5.9 |
-| Документация README.md | Инструкция по развёртыванию, 4 сценария запросов, таблицы примитивов | [`mcp/README.md`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/mcp/README.md) |
-| Проверка через MCP Inspector | Пошаговая инструкция и фактические скриншоты | [`mcp/README.md`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/mcp/README.md), раздел 5.11 |
+| Документация README.md | Инструкция по развёртыванию, 4 сценария запросов, таблицы примитивов | [`mcp/README.md`](https://github.com/AlekseiNarkevich/pchelper-store/blob/main/mcp/README.md) |
+| Проверка через MCP Inspector | Пошаговая инструкция и фактические скриншоты | [`mcp/README.md`](https://github.com/AlekseiNarkevich/pchelper-store/blob/main/mcp/README.md), раздел 5.11 |
 
 ## Сущности системы
 
@@ -64,14 +64,14 @@ AI-ассистенту взаимодействовать с базой дан�
 | Действие агента | `ЖурналДействийАгента` | `момент`, `агент`, `инструмент`, `аргументы`, `результат` | Аудит |
 
 **Именованные в mock-базе MCP-сервера теми же именами, что и в PostgreSQL
-([`db/01_schema.sql`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/db/01_schema.sql), [`db/02_marketplace.sql`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/db/02_marketplace.sql))** — это сделано намеренно,
+([`db/01_schema.sql`](https://github.com/AlekseiNarkevich/pchelper-store/blob/main/db/01_schema.sql), [`db/02_marketplace.sql`](https://github.com/AlekseiNarkevich/pchelper-store/blob/main/db/02_marketplace.sql))** — это сделано намеренно,
 чтобы при переходе на PostgreSQL менялся только слой `db.py`.
 
 ## Архитектура MCP-сервера
 
-**Файл:** [`08-mcp-architecture.puml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/08-mcp-architecture.puml)
+**Файл:** [`08-mcp-architecture.puml`](https://github.com/AlekseiNarkevich/pchelper-store/blob/main/diagrams/plantuml/08-mcp-architecture.puml)
 
-![Рис. 21. Архитектура MCP-сервера PCHelper](https://alekseinarkevich.github.io/pchelper-infra/img/08-mcp-architecture.png)
+![Рис. 21. Архитектура MCP-сервера PCHelper](https://alekseinarkevich.github.io/pchelper-store/img/08-mcp-architecture.png)
 
 #### Решение: два транспорта
 
@@ -81,7 +81,7 @@ AI-ассистенту взаимодействовать с базой дан�
 | **Streamable HTTP** | MCP Inspector, удалённый запуск, интеграция в контейнер | `python server.py --http --port 8080` |
 
 Один и тот же код обслуживает оба транспорта — переключение флагом `--http`
-в функции `main` (4 строки, [`mcp/server.py`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/mcp/server.py)).
+в функции `main` (4 строки, [`mcp/server.py`](https://github.com/AlekseiNarkevich/pchelper-store/blob/main/mcp/server.py)).
 
 #### Решение: доменная логика отделена от MCP
 
@@ -99,9 +99,9 @@ db.py        ← доступ к данным
 
 ## Tools — 13 инструментов
 
-**Файл:** [`14-mcp-schema.puml`](https://github.com/AlekseiNarkevich/pchelper-infra/blob/main/diagrams/plantuml/14-mcp-schema.puml)
+**Файл:** [`14-mcp-schema.puml`](https://github.com/AlekseiNarkevich/pchelper-store/blob/main/diagrams/plantuml/14-mcp-schema.puml)
 
-![Рис. 22. JSON-схемы примитивов MCP-сервера PCHelper](https://alekseinarkevich.github.io/pchelper-infra/img/14-mcp-schema.png)
+![Рис. 22. JSON-схемы примитивов MCP-сервера PCHelper](https://alekseinarkevich.github.io/pchelper-store/img/14-mcp-schema.png)
 
 #### Принципы типизации аргументов
 

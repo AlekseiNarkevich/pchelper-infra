@@ -54,7 +54,7 @@ package "Организация fpmi-hci-2026" #ffffff {
 ' --- Личный репозиторий инфраструктуры ---
 ' Конвейер задания 6 выполняется здесь. Состав каталогов
 ' соответствует содержимому папки ЛР4/infra/.
-package "Личный репозиторий\nAlekseiNarkevich/pchelper-infra" #fffde7 {
+package "Личный репозиторий\nAlekseiNarkevich/pchelper-store" #fffde7 {
   folder "/.github/workflows\nci.yml — 6 этапов" as ciwf
   folder "/docker-compose.yml\npostgres · redis · api · web · mcp" as compose
   folder "/backend\nHello World API\n13 тестов node:test" as infbackend

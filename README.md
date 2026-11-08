@@ -295,7 +295,7 @@ GET https://pchelper-infra.onrender.com/api/v1/hello
 ## Приложение. Состав репозитория и порядок первичной загрузки
 
 Материалы лабораторной работы загружены в личный репозиторий
-<https://github.com/AlekseiNarkevich/pchelper-infra>.
+<https://github.com/AlekseiNarkevich/pchelper-store>.
 
 Соответствие один к одному:
 
