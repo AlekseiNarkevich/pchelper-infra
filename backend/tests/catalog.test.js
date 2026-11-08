@@ -75,6 +75,29 @@ test('каталог: поиск по названию не зависит от 
   }
 });
 
+test('каталог: поиск находит по категории, а не только по названию', async () => {
+  const { status, body } = await get('/products?search=корпус');
+  assert.equal(status, 200);
+  assert.ok(body.total >= 1);
+  for (const item of body.items) assert.equal(item.category, 'case');
+});
+
+test('каталог: поиск находит по характеристике (AM5, DDR5)', async () => {
+  const am5 = await get('/products?search=AM5');
+  const ddr5 = await get('/products?search=DDR5');
+  assert.equal(am5.status, 200);
+  assert.ok(am5.body.total >= 2);
+  assert.ok(ddr5.body.total >= 2);
+  for (const item of am5.body.items) {
+    const values = item.specs.map((spec) => spec.value.toLowerCase());
+    assert.ok(
+      item.name.toLowerCase().includes('am5') ||
+        values.some((value) => value.includes('am5')),
+      `AM5 не найден у ${item.name}`,
+    );
+  }
+});
+
 test('каталог: фильтр по цене оставляет товары в диапазоне', async () => {
   const { status, body } = await get('/products?minPrice=100&maxPrice=300');
   assert.equal(status, 200);
@@ -105,9 +128,13 @@ test('каталог: страницы не пересекаются и сохр
 });
 
 test('товар: составной идентификатор возвращает карточку с характеристиками', async () => {
-  const { status, body } = await get('/products/cpu:1');
+  // Идентификатор берём из списка, а не зашиваем: снимок каталога
+  // для CI может содержать другие позиции, чем боевая база.
+  const list = await get('/products?category=cpu&limit=1');
+  const productId = list.body.items[0].id;
+  const { status, body } = await get(`/products/${productId}`);
   assert.equal(status, 200);
-  assert.equal(body.id, 'cpu:1');
+  assert.equal(body.id, productId);
   assert.equal(body.category, 'cpu');
   assert.equal(typeof body.name, 'string');
   assert.ok(Array.isArray(body.specs));

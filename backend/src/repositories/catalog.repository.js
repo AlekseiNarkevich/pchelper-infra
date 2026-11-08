@@ -80,11 +80,31 @@ function normalize(value) {
 }
 
 /**
+ * Проверяет, подходит ли товар под поисковый запрос.
+ *
+ * Ищем не только по названию: пользователь часто помнит характеристику
+ * («AM5», «DDR5», «750 Вт»), а не модель. Поэтому запрос сравнивается
+ * ещё с категорией и значениями характеристик.
+ *
+ * @param {object} product Товар.
+ * @param {string} needle Запрос в нижнем регистре.
+ * @returns {boolean}
+ */
+function matchesSearch(product, needle) {
+  if (normalize(product.name).includes(needle)) return true;
+  if (normalize(product.categoryName).includes(needle)) return true;
+  return product.specs.some(
+    (spec) =>
+      normalize(spec.label).includes(needle) || normalize(spec.value).includes(needle),
+  );
+}
+
+/**
  * Фильтрует, сортирует и отдаёт страницу каталога.
  *
  * @param {object} params Параметры запроса.
  * @param {string} [params.category] Код категории.
- * @param {string} [params.search] Подстрока в названии.
+ * @param {string} [params.search] Подстрока в названии или характеристиках.
  * @param {number} [params.minPrice] Минимальная цена.
  * @param {number} [params.maxPrice] Максимальная цена.
  * @param {string} [params.sort] Вариант сортировки.
@@ -109,7 +129,7 @@ export async function listProducts(params = {}) {
 
   if (search) {
     const needle = normalize(search);
-    products = products.filter((p) => normalize(p.name).includes(needle));
+    products = products.filter((product) => matchesSearch(product, needle));
   }
   if (minPrice !== undefined) products = products.filter((p) => p.price >= minPrice);
   if (maxPrice !== undefined) products = products.filter((p) => p.price <= maxPrice);

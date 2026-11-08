@@ -15,35 +15,35 @@
 
 export const FIXTURE_PRODUCTS = [
   {
-    id: 'cpu:1',
+    id: 'cpu:8',
     category: 'cpu',
     categoryName: 'Процессоры',
-    name: 'AMD Ryzen 5 5600',
-    price: 368,
+    name: 'Intel Core i3-12100F',
+    price: 255,
     currency: 'BYN',
     imageUrl:
-      'https://odlknontbixwbngsfpmc.supabase.co/storage/v1/object/public/pchelper-images/amd_ryzen_5_5600_1.png',
+      'https://odlknontbixwbngsfpmc.supabase.co/storage/v1/object/public/pchelper-images/intel_core_i3_12100f_1.png',
     description: 'Настольные процессоры AMD и Intel',
     specs: [
       {
         label: 'Производитель',
-        value: 'AMD',
+        value: 'Intel',
       },
       {
         label: 'Сокет',
-        value: 'AM4',
+        value: 'LGA1700',
       },
       {
         label: 'Ядра / потоки',
-        value: '6 / 12',
+        value: '4 / 8',
       },
       {
         label: 'Частота',
-        value: '3,5–4,4 ГГц',
+        value: '3,3–4,3 ГГц',
       },
       {
         label: 'TDP',
-        value: '95 Вт',
+        value: '80 Вт',
       },
       {
         label: 'Встроенная графика',
@@ -51,19 +51,19 @@ export const FIXTURE_PRODUCTS = [
       },
       {
         label: 'Память',
-        value: 'DDR4',
+        value: 'DDR4/DDR5',
       },
     ],
   },
   {
-    id: 'cpu:2',
+    id: 'cpu:6',
     category: 'cpu',
     categoryName: 'Процессоры',
-    name: 'AMD Ryzen 5 5600G',
-    price: 457,
+    name: 'AMD Ryzen 7 9800X3D',
+    price: 1380,
     currency: 'BYN',
     imageUrl:
-      'https://odlknontbixwbngsfpmc.supabase.co/storage/v1/object/public/pchelper-images/amd_ryzen_5_5600_1.png',
+      'https://odlknontbixwbngsfpmc.supabase.co/storage/v1/object/public/pchelper-images/amd_ryzen_7_9800x3d_(oem)_1.png',
     description: 'Настольные процессоры AMD и Intel',
     specs: [
       {
@@ -72,27 +72,27 @@ export const FIXTURE_PRODUCTS = [
       },
       {
         label: 'Сокет',
-        value: 'AM4',
+        value: 'AM5',
       },
       {
         label: 'Ядра / потоки',
-        value: '6 / 12',
+        value: '8 / 16',
       },
       {
         label: 'Частота',
-        value: '3,9–4,4 ГГц',
+        value: '4,7–5,2 ГГц',
       },
       {
         label: 'TDP',
-        value: '100 Вт',
+        value: '200 Вт',
       },
       {
         label: 'Встроенная графика',
-        value: 'AMD Radeon Vega 7 1.9 ГГц',
+        value: 'AMD Radeon Graphics',
       },
       {
         label: 'Память',
-        value: 'DDR4',
+        value: 'DDR5',
       },
     ],
   },
@@ -142,27 +142,27 @@ export const FIXTURE_PRODUCTS = [
     ],
   },
   {
-    id: 'motherboard:2',
+    id: 'motherboard:11',
     category: 'motherboard',
     categoryName: 'Материнские платы',
-    name: 'ASUS TUF Gaming B450-PLUS II',
-    price: 377,
+    name: 'MSI MAG X870E Tomahawk WiFi',
+    price: 1172,
     currency: 'BYN',
     imageUrl:
-      'https://odlknontbixwbngsfpmc.supabase.co/storage/v1/object/public/pchelper-images/8ae9272ffd5822228fa6a6f70f57b0b9a95565c7393f0366163103d680b531c0.png',
+      'https://odlknontbixwbngsfpmc.supabase.co/storage/v1/object/public/pchelper-images/0a8c795e58faa098d1a6f32ce18f4df8754ad401d727dc243b8d49b09ad1dd7c.jpg',
     description: 'Платы для платформ AM5 и LGA1700',
     specs: [
       {
         label: 'Сокет',
-        value: 'AM4',
+        value: 'AM5',
       },
       {
         label: 'Чипсет',
-        value: 'B450',
+        value: 'X870E',
       },
       {
         label: 'Тип памяти',
-        value: 'DDR4',
+        value: 'DDR5',
       },
       {
         label: 'Форм-фактор',
@@ -170,64 +170,31 @@ export const FIXTURE_PRODUCTS = [
       },
       {
         label: 'Фазы питания',
-        value: '8+2',
+        value: '14+2+1',
       },
       {
         label: 'Максимум памяти',
-        value: '128 ГБ',
+        value: '256 ГБ',
       },
       {
         label: 'Слоты M.2',
-        value: '2',
+        value: '4',
       },
       {
         label: 'Порты SATA',
-        value: '6',
+        value: '4',
       },
     ],
   },
   {
-    id: 'ram:1',
+    id: 'ram:3',
     category: 'ram',
     categoryName: 'Оперативная память',
-    name: 'Kingston FURY Beast Black 2x8GB DDR4 3200MHz',
-    price: 552,
+    name: 'Team T-Create Expert OC10L 2x8GB DDR4 3200MHz',
+    price: 529,
     currency: 'BYN',
     imageUrl:
-      'https://odlknontbixwbngsfpmc.supabase.co/storage/v1/object/public/pchelper-images/0.jpg',
-    description: 'Модули DDR4 и DDR5',
-    specs: [
-      {
-        label: 'Тип',
-        value: 'DDR4',
-      },
-      {
-        label: 'Объём',
-        value: '16 ГБ',
-      },
-      {
-        label: 'Частота',
-        value: '3200 МГц',
-      },
-      {
-        label: 'Тайминги',
-        value: '16-18-18',
-      },
-      {
-        label: 'Профили разгона',
-        value: 'есть',
-      },
-    ],
-  },
-  {
-    id: 'ram:2',
-    category: 'ram',
-    categoryName: 'Оперативная память',
-    name: 'Netac Shadow S 2x8GB DDR4 3200MHz',
-    price: 531,
-    currency: 'BYN',
-    imageUrl:
-      'https://odlknontbixwbngsfpmc.supabase.co/storage/v1/object/public/pchelper-images/netac_ntssd4p32dp-16w_189829_1.jpg',
+      'https://odlknontbixwbngsfpmc.supabase.co/storage/v1/object/public/pchelper-images/team_ttced416g3200hc16fdc01_156313_1.jpg',
     description: 'Модули DDR4 и DDR5',
     specs: [
       {
@@ -245,6 +212,39 @@ export const FIXTURE_PRODUCTS = [
       {
         label: 'Тайминги',
         value: '16-20-20-40',
+      },
+      {
+        label: 'Профили разгона',
+        value: 'нет',
+      },
+    ],
+  },
+  {
+    id: 'ram:10',
+    category: 'ram',
+    categoryName: 'Оперативная память',
+    name: 'Kingston FURY Beast 2x32GB DDR5 6000MHz',
+    price: 2579,
+    currency: 'BYN',
+    imageUrl:
+      'https://odlknontbixwbngsfpmc.supabase.co/storage/v1/object/public/pchelper-images/00740617331721Med1.jpg',
+    description: 'Модули DDR4 и DDR5',
+    specs: [
+      {
+        label: 'Тип',
+        value: 'DDR5',
+      },
+      {
+        label: 'Объём',
+        value: '64 ГБ',
+      },
+      {
+        label: 'Частота',
+        value: '6000 МГц',
+      },
+      {
+        label: 'Тайминги',
+        value: '30-36-36',
       },
       {
         label: 'Профили разгона',
@@ -290,14 +290,14 @@ export const FIXTURE_PRODUCTS = [
     ],
   },
   {
-    id: 'gpu:2',
+    id: 'gpu:6',
     category: 'gpu',
     categoryName: 'Видеокарты',
-    name: 'Palit GeForce RTX 5060 Ti Infinity 3 16GB',
-    price: 1661,
+    name: 'Palit GeForce RTX 5090 GameRock OC',
+    price: 10764,
     currency: 'BYN',
     imageUrl:
-      'https://odlknontbixwbngsfpmc.supabase.co/storage/v1/object/public/pchelper-images/620fdbce740c626e41078b85ba9695649c4b133f78bbadbaf18658e09b374a2b.jpg',
+      'https://odlknontbixwbngsfpmc.supabase.co/storage/v1/object/public/pchelper-images/c12579a8a21ec2041f3ac9de91ba52702fb8ad9bb184d5c1e8a6062b149abcb5.jpg',
     description: 'Графические ускорители NVIDIA и AMD',
     specs: [
       {
@@ -306,15 +306,15 @@ export const FIXTURE_PRODUCTS = [
       },
       {
         label: 'Память',
-        value: '16 ГБ',
+        value: '32 ГБ',
       },
       {
         label: 'Длина',
-        value: '292 мм',
+        value: '332 мм',
       },
       {
         label: 'TDP',
-        value: '180 Вт',
+        value: '600 Вт',
       },
       {
         label: 'Вентиляторы',
@@ -322,7 +322,7 @@ export const FIXTURE_PRODUCTS = [
       },
       {
         label: 'Толщина',
-        value: '2 слота',
+        value: '3,5 слота',
       },
     ],
   },
@@ -372,31 +372,35 @@ export const FIXTURE_PRODUCTS = [
     ],
   },
   {
-    id: 'psu:2',
+    id: 'psu:9',
     category: 'psu',
     categoryName: 'Блоки питания',
-    name: 'Ocypus Gamma P650',
-    price: 112,
+    name: '1stPlayer NGDP Platinum 1000W',
+    price: 491,
     currency: 'BYN',
     imageUrl:
-      'https://odlknontbixwbngsfpmc.supabase.co/storage/v1/object/public/pchelper-images/71268cfb8c27e1e91613937b4f7ccc63.png',
+      'https://odlknontbixwbngsfpmc.supabase.co/storage/v1/object/public/pchelper-images/844ad2fbfdd03b3ba5c70bfbe08eb1114db31a9757fc291dc0377bc49d051277.jpg',
     description: 'Блоки питания от 450 до 1000 Вт',
     specs: [
       {
         label: 'Мощность',
-        value: '650 Вт',
+        value: '1000 Вт',
       },
       {
         label: 'Стандарт',
-        value: 'ATX12V 2.53',
+        value: 'ATX12V 3.1',
       },
       {
         label: 'Сертификат 80 PLUS',
-        value: 'Простой',
+        value: 'Платиновый',
+      },
+      {
+        label: 'Cybenetics',
+        value: 'Платиновый',
       },
       {
         label: 'Модульный',
-        value: 'нет',
+        value: 'да',
       },
       {
         label: 'Разъёмы PCIe',
@@ -408,28 +412,28 @@ export const FIXTURE_PRODUCTS = [
       },
       {
         label: 'Разъёмы SATA',
-        value: '6',
+        value: '9',
       },
       {
         label: 'PCIe 5.0',
-        value: 'нет',
+        value: 'да',
       },
     ],
   },
   {
-    id: 'storage:1',
+    id: 'storage:13',
     category: 'storage',
     categoryName: 'Накопители',
-    name: 'Kingston NV3 1TB',
-    price: 454,
+    name: 'WD Blue 1TB HDD',
+    price: 235,
     currency: 'BYN',
     imageUrl:
-      'https://odlknontbixwbngsfpmc.supabase.co/storage/v1/object/public/pchelper-images/1.jpg',
+      'https://odlknontbixwbngsfpmc.supabase.co/storage/v1/object/public/pchelper-images/531e1e880acf7fac191e35a5d616bb6b920d77fa31e8929909b1d7c5985e3b58.jpg',
     description: 'NVMe и SATA SSD',
     specs: [
       {
         label: 'Тип',
-        value: 'SSD',
+        value: 'HDD',
       },
       {
         label: 'Объём',
@@ -437,11 +441,11 @@ export const FIXTURE_PRODUCTS = [
       },
       {
         label: 'Интерфейс',
-        value: 'M.2',
+        value: 'SATA',
       },
       {
         label: 'Скорость чтения / записи',
-        value: '6000 / 4000 МБ/с',
+        value: '150 / 150 МБ/с',
       },
       {
         label: 'DRAM-буфер',
@@ -454,14 +458,14 @@ export const FIXTURE_PRODUCTS = [
     ],
   },
   {
-    id: 'storage:2',
+    id: 'storage:7',
     category: 'storage',
     categoryName: 'Накопители',
-    name: 'Kingston Fury Renegade 1TB',
-    price: 612,
+    name: 'A-Data XPG MARS 980 Storm 2TB',
+    price: 1180,
     currency: 'BYN',
     imageUrl:
-      'https://odlknontbixwbngsfpmc.supabase.co/storage/v1/object/public/pchelper-images/SFYRD-2000G-1.jpg',
+      'https://odlknontbixwbngsfpmc.supabase.co/storage/v1/object/public/pchelper-images/mars_980_storm_pd_2000x2000_011745320953.png',
     description: 'NVMe и SATA SSD',
     specs: [
       {
@@ -470,7 +474,7 @@ export const FIXTURE_PRODUCTS = [
       },
       {
         label: 'Объём',
-        value: '1000 ГБ',
+        value: '2000 ГБ',
       },
       {
         label: 'Интерфейс',
@@ -478,7 +482,7 @@ export const FIXTURE_PRODUCTS = [
       },
       {
         label: 'Скорость чтения / записи',
-        value: '7300 / 6000 МБ/с',
+        value: '14000 / 13000 МБ/с',
       },
       {
         label: 'DRAM-буфер',
@@ -528,27 +532,27 @@ export const FIXTURE_PRODUCTS = [
     ],
   },
   {
-    id: 'case:2',
+    id: 'case:7',
     category: 'case',
     categoryName: 'Корпуса',
-    name: 'Montech AIR 100 Lite',
-    price: 126,
+    name: 'Lian Li Lancool III',
+    price: 465,
     currency: 'BYN',
     imageUrl:
-      'https://odlknontbixwbngsfpmc.supabase.co/storage/v1/object/public/pchelper-images/6d98a3cd6c0f48d59aff64b4730ba73328ba714fd502a0a7edfd7f094228087a.jpg',
+      'https://odlknontbixwbngsfpmc.supabase.co/storage/v1/object/public/pchelper-images/lan3-a00.jpg',
     description: 'Корпуса форматов ATX и mATX',
     specs: [
       {
         label: 'Форм-фактор',
-        value: 'mATX',
+        value: 'ATX',
       },
       {
         label: 'Максимальная длина видеокарты',
-        value: '330 мм',
+        value: '435 мм',
       },
       {
         label: 'Максимальная высота кулера',
-        value: '161 мм',
+        value: '187 мм',
       },
       {
         label: 'Поддержка СЖО',
@@ -556,11 +560,11 @@ export const FIXTURE_PRODUCTS = [
       },
       {
         label: 'Радиатор СЖО',
-        value: '280 мм',
+        value: '420 мм',
       },
       {
         label: 'Вентиляторы в комплекте',
-        value: '2x120mm',
+        value: '3x140mm PWM + 1x140mm PWM',
       },
     ],
   },
@@ -598,35 +602,35 @@ export const FIXTURE_PRODUCTS = [
     ],
   },
   {
-    id: 'cooling:2',
+    id: 'cooling:7',
     category: 'cooling',
     categoryName: 'Системы охлаждения',
-    name: 'ID-Cooling SE-206-XT',
-    price: 84,
+    name: 'Thermalright Frozen Warframe Pro 360',
+    price: 330,
     currency: 'BYN',
     imageUrl:
-      'https://odlknontbixwbngsfpmc.supabase.co/storage/v1/object/public/pchelper-images/fb43664e446b4f93d3c92468913bdddd99349ed8e04148637a3b39f1af6c3a9b.jpg',
+      'https://odlknontbixwbngsfpmc.supabase.co/storage/v1/object/public/pchelper-images/1%20(2).jpg',
     description: 'Воздушные кулеры и жидкостные системы',
     specs: [
       {
         label: 'Тип',
-        value: 'Воздушное',
+        value: 'Жидкостное',
       },
       {
         label: 'Рассеиваемая мощность',
-        value: '250 Вт',
+        value: '350 Вт',
       },
       {
         label: 'Высота',
-        value: '156 мм',
+        value: '27 мм',
       },
       {
         label: 'Длина радиатора',
-        value: '0 мм',
+        value: '360 мм',
       },
       {
         label: 'Максимальный шум',
-        value: '35 дБ',
+        value: '30 дБ',
       },
     ],
   },
