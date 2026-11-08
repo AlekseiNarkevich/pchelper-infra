@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate } from 'react-router-dom';
 
 import { getProducts, money } from '../api.js';
 import { cartCount, onCartChange } from '../cart.js';
+import React from 'react';
 
 /**
  * Шапка витрины: логотип, разделы, поиск с подсказками и счётчик корзины.

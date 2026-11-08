@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 
 import { money } from '../api.js';
 import { onCartChange, readCart, removeItem, setQty } from '../cart.js';
+import React from 'react';
 
 /**
  * Корзина — демонстрационная: позиции хранятся в localStorage.

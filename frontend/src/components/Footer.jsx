@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import React from 'react';
 
 /** Подвал: краткая информация о проекте и контакты. */
 export default function Footer() {

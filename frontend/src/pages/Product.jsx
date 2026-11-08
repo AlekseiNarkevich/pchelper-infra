@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router-dom';
 import { getProduct, getProducts, money } from '../api.js';
 import ProductCard from '../components/ProductCard.jsx';
 import { addToCart } from '../cart.js';
+import React from 'react';
 
 /**
  * Карточка товара: фото, цена, характеристики и похожие позиции.

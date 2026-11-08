@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 
 import { getCategories, getPrebuilt, getProducts, money } from '../api.js';
 import ProductCard from '../components/ProductCard.jsx';
+import React from 'react';
 
 /**
  * Главная страница: витрина категорий, популярные товары и готовые сборки.

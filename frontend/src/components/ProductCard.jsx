@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 
 import { addToCart } from '../cart.js';
 import { money } from '../api.js';
+import React from 'react';
 
 /**
  * Карточка товара в сетке каталога.

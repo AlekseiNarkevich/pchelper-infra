@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import React from 'react';
 
 /** Страница для неизвестного адреса. */
 export default function NotFound() {
