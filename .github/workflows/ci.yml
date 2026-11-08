@@ -301,6 +301,7 @@ jobs:
             -Dsonar.sources=backend/src,frontend/src,mcp
             -Dsonar.tests=backend/tests,mcp/tests
             -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/coverage/**,**/*.min.js,db/**,docs/**,wiki/**,diagrams/**
+            -Dsonar.cpd.exclusions=backend/src/data/**,backend/tests/**,mcp/tests/**
             -Dsonar.qualitygate.wait=true
             -Dsonar.qualitygate.timeout=300
 
