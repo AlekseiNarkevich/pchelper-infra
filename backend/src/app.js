@@ -14,6 +14,7 @@
 import express from 'express';
 import helloRouter from './routes/hello.js';
 import adminRouter from './routes/admin.js';
+import catalogRouter from './routes/catalog.js';
 
 // Момент запуска — чтобы в ответе /api/v1/hello показывать время работы процесса.
 const STARTED_AT = Date.now();
@@ -63,6 +64,11 @@ export function createApp() {
   // Пункт 9 задания 6 — приложение типа «Hello World».
   app.use('/api/v1', helloRouter);
 
+  // --- Каталог ЛР7 ---
+  // Товары, категории и готовые сборки. Данные берутся из Supabase,
+  // а при отсутствии переменных окружения — из демонстрационной фикстуры.
+  app.use('/api/v1', catalogRouter);
+
   // Защищённый админ-модуль: доступ проверяет middleware выше по цепочке.
   app.use('/api/v1/admin', adminRouter);
 
@@ -104,10 +110,20 @@ export function createApp() {
   // Сам next здесь не нужен, поэтому он назван с подчёркиванием:
   // правило no-unused-vars разрешает неиспользуемые аргументы,
   // начинающиеся с «_».
+  //
+  // Ошибки с явно заданным статусом (например, 400 от валидации каталога)
+  // отдаются клиенту с этим статусом: иначе любая опечатка в query
+  // выглядела бы как сбой сервера.
   app.use((err, req, res, _next) => {
-    console.error('[api] необработанная ошибка:', err.message);
-    res.status(500).json({
-      error: { code: 'INTERNAL_ERROR', message: err.message || 'Ошибка сервера' },
+    const status = Number(err.status) || 500;
+    if (status >= 500) {
+      console.error('[api] необработанная ошибка:', err.message);
+    }
+    res.status(status).json({
+      error: {
+        code: err.code || 'INTERNAL_ERROR',
+        message: err.message || 'Ошибка сервера',
+      },
     });
   });
 
