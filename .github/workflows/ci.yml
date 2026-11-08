@@ -237,7 +237,6 @@ jobs:
     # миграция ломает уже отлаженные сборки.
     runs-on: ubuntu-24.04
     needs: [test, lint, web]
-    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
     # Сканер не должен блокировать сборку: его роль — информационная.
     # Блокирующие проверки — линт, тесты и покрытие (этапы lint, web, test).
     continue-on-error: true
