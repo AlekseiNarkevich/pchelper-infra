@@ -1568,6 +1568,143 @@ paths:
               schema: { $ref: '#/components/schemas/Error' }
         '403': { $ref: '#/components/responses/Forbidden' }
 
+  # ---------------------- Каталог ЛР7 --------------------------------
+  /categories:
+    get:
+      tags: [Каталог]
+      summary: Восемь категорий каталога с количеством товаров
+      security: []
+      operationId: listCategories
+      responses:
+        '200':
+          description: Список категорий
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, total]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Category' }
+                  total: { type: integer, example: 8 }
+              example:
+                items:
+                  - { id: cpu, name: Процессоры, description: Настольные процессоры AMD и Intel, count: 16 }
+                  - { id: gpu, name: Видеокарты, description: Графические ускорители NVIDIA и AMD, count: 9 }
+                total: 8
+        '500':
+          description: Ошибка чтения каталога
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /products:
+    get:
+      tags: [Каталог]
+      summary: Список товаров с фильтрами, сортировкой и страницами
+      security: []
+      operationId: listProducts
+      parameters:
+        - name: category
+          in: query
+          schema: { $ref: '#/components/schemas/ComponentType' }
+        - name: search
+          in: query
+          description: Подстрока в названии, категории или характеристике
+          schema: { type: string, maxLength: 100 }
+          example: AM5
+        - name: minPrice
+          in: query
+          schema: { type: integer, minimum: 0 }
+        - name: maxPrice
+          in: query
+          schema: { type: integer, minimum: 0 }
+        - name: sort
+          in: query
+          schema:
+            type: string
+            enum: [price_asc, price_desc, name_asc]
+            default: price_asc
+        - name: limit
+          in: query
+          schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+        - name: offset
+          in: query
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        '200':
+          description: Страница товаров
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, total, limit, offset]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Product' }
+                  total: { type: integer, example: 9 }
+                  limit: { type: integer, example: 2 }
+                  offset: { type: integer, example: 0 }
+        '400':
+          description: Некорректный фильтр или сортировка
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /products/{productId}:
+    get:
+      tags: [Каталог]
+      summary: Карточка товара по составному идентификатору
+      security: []
+      operationId: getProduct
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          description: Код категории и номер через двоеточие
+          schema:
+            type: string
+            pattern: '^[a-z]+:[1-9][0-9]*$'
+          example: 'cpu:1'
+      responses:
+        '200':
+          description: Товар
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Product' }
+        '404':
+          description: Товар не найден
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /prebuilt:
+    get:
+      tags: [Каталог]
+      summary: Готовые сборки с составом и ценой из деталей (реализация ЛР7)
+      security: []
+      operationId: listPrebuiltBuilds
+      responses:
+        '200':
+          description: Список сборок
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, total]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/PrebuiltBuild' }
+                  total: { type: integer, example: 7 }
+        '500':
+          description: Ошибка чтения сборок
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
 # =====================================================================
 #  КОМПОНЕНТЫ
 # =====================================================================
@@ -1678,6 +1815,70 @@ components:
       type: string
       description: Тип компонента каталога
       enum: [cpu, motherboard, ram, cooling, gpu, storage, psu, case]
+
+    Category:
+      type: object
+      required: [id, name, count]
+      properties:
+        id: { $ref: '#/components/schemas/ComponentType' }
+        name: { type: string, example: Процессоры }
+        description: { type: string }
+        count: { type: integer, minimum: 0, example: 16 }
+
+    ProductSpec:
+      type: object
+      required: [label, value]
+      properties:
+        label: { type: string, example: Сокет }
+        value: { type: string, example: AM5 }
+
+    Product:
+      type: object
+      required: [id, category, categoryName, name, price, currency, specs]
+      properties:
+        id:
+          type: string
+          description: Составной идентификатор «категория:номер»
+          example: 'cpu:1'
+        category: { $ref: '#/components/schemas/ComponentType' }
+        categoryName: { type: string, example: Процессоры }
+        name: { type: string, example: 'AMD Ryzen 5 5600' }
+        price: { type: integer, minimum: 0, example: 368 }
+        currency: { type: string, enum: [BYN], example: BYN }
+        imageUrl:
+          type: string
+          format: uri
+          nullable: true
+        description: { type: string }
+        specs:
+          type: array
+          items: { $ref: '#/components/schemas/ProductSpec' }
+
+    PrebuiltComponent:
+      type: object
+      required: [category, name]
+      properties:
+        category: { $ref: '#/components/schemas/ComponentType' }
+        name: { type: string, example: 'AMD Ryzen 5 5600G' }
+        price: { type: integer, minimum: 0, example: 457 }
+
+    PrebuiltBuild:
+      type: object
+      required: [id, name, price, currency, components, componentCount]
+      properties:
+        id: { type: integer, example: 1 }
+        name: { type: string, example: 'Офисный ПК1' }
+        task: { type: string, example: 'Офис, учёба, веб-сёрфинг' }
+        price: { type: integer, minimum: 0, example: 2025 }
+        currency: { type: string, enum: [BYN], example: BYN }
+        imageUrl:
+          type: string
+          format: uri
+          nullable: true
+        components:
+          type: array
+          items: { $ref: '#/components/schemas/PrebuiltComponent' }
+        componentCount: { type: integer, minimum: 0, example: 8 }
 
     OrderStatus:
       type: string
