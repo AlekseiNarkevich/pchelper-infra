@@ -36,7 +36,10 @@ const MAX_LIMIT = 100;
  */
 function asyncHandler(handler) {
   return (req, res, next) => {
-    handler(req, res).catch(next);
+    // void подчёркивает, что промис обрабатывается через catch,
+    // а не возвращается наружу: SonarCloud иначе считает это
+    // необработанным промисом (правило S6544).
+    void handler(req, res).catch(next);
   };
 }
 
