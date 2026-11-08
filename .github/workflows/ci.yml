@@ -330,6 +330,7 @@ jobs:
       && needs.test.result == 'success'
       && needs.web.result == 'success'
 
+
     # Права на запись выдаются только этому этапу: на уровне workflow
     # осталось чтение. packages нужен для проталкивания образов в GHCR.
     permissions:
