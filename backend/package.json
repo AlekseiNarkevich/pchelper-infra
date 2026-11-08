@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "pchelper-infra-backend",
   "version": "1.0.0",
   "private": true,
@@ -18,7 +18,7 @@
     "format:check": "prettier --check ."
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.47.10",
