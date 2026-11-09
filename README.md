@@ -34,7 +34,7 @@ AI-ассистента и контейнерное окружение. Окру
 
 * Docker Engine 24+ и Docker Compose v2;
 * 4 ГБ свободной памяти для всех сервисов одновременно;
-* Node.js 20 и npm 10 — для запуска без Docker;
+* Node.js 22 и npm 10 — для запуска без Docker;
 * Python 3.12 — для MCP-сервера.
 
 Проверено на: Docker 29.8.2, Docker Compose v5.6.0, Docker Desktop (Windows),
