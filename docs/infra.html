@@ -22,7 +22,7 @@
 <div class='table-wrap'><table><thead><tr><th>Репозиторий</th><th>Назначение</th><th>Состояние</th></tr></thead><tbody><tr><td><a href="https://github.com/AlekseiNarkevich/pchelper-store"><code>AlekseiNarkevich/pchelper-store</code></a></td><td>Документация лабораторной работы, вики, GitHub Pages, Docker-окружение, CI/CD, SonarQube, развёртывание</td><td><strong>рабочий</strong>: конвейер зелёный, сервис доступен на <code>pchelper-infra.onrender.com</code></td></tr></tbody></table></div>
 <p>Задание 6, пункт 2 требует разнести проект по репозиториям бекенда, веб- и мобильной версии. Целевая структура курсовой работы — четыре репозитория в организации <code>fpmi-hci-2026</code>: документация, серверное приложение и API, веб-клиент и мобильный клиент. На момент сдачи лабораторной работы они не созданы, поэтому в отчёте ссылки на них не приводятся — вместо них показано то, что действительно сделано.</p>
 <p><strong>Репозиторий, в котором выполняется задание 6.</strong> Конвейер CI/CD, проверка качества кода и развёртывание выполняются в отдельном личном репозитории <a href="https://github.com/AlekseiNarkevich/pchelper-store"><code>AlekseiNarkevich/pchelper-store</code></a>. Это сознательное решение: инфраструктура задания 6 — учебный стенд, который поднимается одной командой <code>docker compose up -d --build</code>, и выносить его в отдельный репозиторий преждевременно, пока нечего переносить. Структура:</p>
-<pre><code>pchelper-infra/
+<pre><code>pchelper-store/
 ├── .github/workflows/ci.yml     # конвейер из шести этапов
 ├── docker-compose.yml           # postgres, redis, api, web, mcp
 ├── backend/                     # Hello World API + 13 тестов
@@ -32,7 +32,7 @@
 └── README.md</code></pre>
 <p>Когда стенд будет перенесён в код магазина (курсовая работа), конвейер переедёт в репозиторий серверного приложения.</p>
 <h5>Модель веток</h5>
-<p>Согласованная командой модель, одинаковая для всех репозиториев. Фактически в <code>pchelper-infra</code> сейчас создана только ветка <code>main</code>; остальные ветки появятся вместе с первыми задачами из GitHub Project:</p>
+<p>Согласованная командой модель, одинаковая для всех репозиториев. Фактически в <code>pchelper-store</code> сейчас создана только ветка <code>main</code>; остальные ветки появятся вместе с первыми задачами из GitHub Project:</p>
 <div class='table-wrap'><table><thead><tr><th>Ветка</th><th>Назначение</th></tr></thead><tbody><tr><td><code>main</code></td><td>Продакшн. Защищена: требуется approve и зелёный статус CI</td></tr><tr><td><code>develop</code></td><td>Интеграция, сюда сливаются feature-ветки</td></tr><tr><td><code>feature/&lt;задача&gt;</code></td><td>Одна задача из GitHub Project</td></tr><tr><td><code>release/&lt;версия&gt;</code></td><td>Подготовка релиза из <code>develop</code></td></tr><tr><td><code>hotfix/&lt;проблема&gt;</code></td><td>Срочное исправление из <code>main</code></td></tr></tbody></table></div>
 <h5>Соглашение о ветках</h5>
 <div class='table-wrap'><table><thead><tr><th>Ветка</th><th>Назначение</th><th>Правило</th></tr></thead><tbody><tr><td><code>main</code></td><td>Продакшн</td><td>Защищена правилом <code>Protect main</code>: обязателен <strong>pull request</strong> (0 approvals — на этапе лабораторной работу ведёт один человек), <strong>зелёный статус CI</strong>, squash-слияние, запрет force push и удаления ветки. Только коммиты, прошедшие тесты, SonarQube Quality Gate и попавшие в собранный образ</td></tr><tr><td><code>develop</code></td><td>Интеграция</td><td>Все feature-ветки сливаются сюда. Здесь же прогоняется полный CI</td></tr><tr><td><code>feature/&lt;задача&gt;</code></td><td>Одна задача из Project</td><td>Ветка создаётся под <strong>один issue</strong>. Коммиты вида <code>feat(api): добавлен POST /cart/merge (#42)</code></td></tr><tr><td><code>release/&lt;версия&gt;</code></td><td>Подготовка релиза</td><td>Создаётся из <code>develop</code>, в неё переносятся только исправления</td></tr><tr><td><code>hotfix/&lt;проблема&gt;</code></td><td>Срочное исправление</td><td>Из <code>main</code>, сливается и в <code>main</code>, и в <code>develop</code></td></tr></tbody></table></div>
@@ -46,7 +46,7 @@
 <ol><li>Merge в <code>main</code> только при зелёных проверках: тесты, Quality Gate,</li></ol>
 <p>успешная сборка образа.</p>
 <ol><li>Сообщения коммитов — на английском в формате Conventional Commits.</li></ol>
-<p><img src="https://alekseinarkevich.github.io/pchelper-store/img/shots/29-github-repo-code.png" alt="Рис. 31. Репозиторий pchelper-infra на GitHub"></p>
+<p><img src="https://alekseinarkevich.github.io/pchelper-store/img/shots/29-github-repo-code.png" alt="Рис. 31. Репозиторий pchelper-store на GitHub"></p>
 <p><strong>Как настраивается (пошагово):</strong></p>
 <ol><li>*Settings → Rulesets → **New ruleset*<strong> → в выпадающем списке </strong>Branch**.</li><li><strong>Ruleset Name:</strong> <code>Protect main</code>.</li><li><strong>Enforcement status:</strong> <code>Active</code> (не <code>Disabled</code> и не <code>Evaluate</code>).</li><li><strong>Rules → Target branches → Include:</strong> добавить <code>refs/heads/main</code>.</li><li>Включить правила:</li></ol>
 <ul><li><strong>Require a pull request before merging</strong> — Required approvals: <code>1</code></li></ul>
