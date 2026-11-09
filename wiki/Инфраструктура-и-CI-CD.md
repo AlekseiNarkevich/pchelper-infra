@@ -44,7 +44,7 @@
 в отдельный репозиторий преждевременно, пока нечего переносить. Структура:
 
 ```
-pchelper-infra/
+pchelper-store/
 ├── .github/workflows/ci.yml     # конвейер из шести этапов
 ├── docker-compose.yml           # postgres, redis, api, web, mcp
 ├── backend/                     # Hello World API + 13 тестов
@@ -60,7 +60,7 @@ pchelper-infra/
 #### Модель веток
 
 Согласованная командой модель, одинаковая для всех репозиториев.
-Фактически в `pchelper-infra` сейчас создана только ветка `main`;
+Фактически в `pchelper-store` сейчас создана только ветка `main`;
 остальные ветки появятся вместе с первыми задачами из GitHub Project:
 
 | Ветка | Назначение |
@@ -93,7 +93,7 @@ pchelper-infra/
    успешная сборка образа.
 5. Сообщения коммитов — на английском в формате Conventional Commits.
 
-![Рис. 31. Репозиторий pchelper-infra на GitHub](https://alekseinarkevich.github.io/pchelper-store/img/shots/29-github-repo-code.png)
+![Рис. 31. Репозиторий pchelper-store на GitHub](https://alekseinarkevich.github.io/pchelper-store/img/shots/29-github-repo-code.png)
 
 
 
@@ -128,7 +128,7 @@ pchelper-infra/
 | 3 | [**Разработка веб-приложения**](https://github.com/users/AlekseiNarkevich/projects/3) | Фронтенд, wireframes из ЛР2 |
 | 4 | [**Разработка мобильного приложения**](https://github.com/users/AlekseiNarkevich/projects/4) | Нативный Android (Kotlin, Android Studio) |
 
-Все проекты привязаны к репозиторию `pchelper-infra` и открыты для
+Все проекты привязаны к репозиторию `pchelper-store` и открыты для
 просмотра, чтобы по ссылке можно было посмотреть состояние работ.
 
 Каждый проект содержит четыре списка: **To do → In progress → To check → Done**.

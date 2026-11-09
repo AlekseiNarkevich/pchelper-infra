@@ -1875,7 +1875,7 @@ MCP-сервера и ссылку на документацию. Выполне
 в отдельный репозиторий преждевременно, пока нечего переносить. Структура:
 
 ```
-pchelper-infra/
+pchelper-store/
 ├── .github/workflows/ci.yml     # конвейер из шести этапов
 ├── docker-compose.yml           # postgres, redis, api, web, mcp
 ├── backend/                     # Hello World API + 13 тестов
@@ -1891,7 +1891,7 @@ pchelper-infra/
 #### 6.1.2. Модель веток
 
 Согласованная командой модель, одинаковая для всех репозиториев.
-Фактически в `pchelper-infra` сейчас создана только ветка `main`;
+Фактически в `pchelper-store` сейчас создана только ветка `main`;
 остальные ветки появятся вместе с первыми задачами из GitHub Project:
 
 | Ветка | Назначение |
@@ -1924,7 +1924,7 @@ pchelper-infra/
    успешная сборка образа.
 5. Сообщения коммитов — на английском в формате Conventional Commits.
 
-![Рис. 31. Репозиторий pchelper-infra на GitHub](https://alekseinarkevich.github.io/pchelper-store/img/shots/29-github-repo-code.png)
+![Рис. 31. Репозиторий pchelper-store на GitHub](https://alekseinarkevich.github.io/pchelper-store/img/shots/29-github-repo-code.png)
 
 Правило создано с параметрами *Enforcement status: Active*, раздел
 **Targets → Branches** с паттерном `main` и набором правил
@@ -1979,7 +1979,7 @@ pchelper-infra/
 | 3 | [**Разработка веб-приложения**](https://github.com/users/AlekseiNarkevich/projects/3) | Фронтенд, wireframes из ЛР2 |
 | 4 | [**Разработка мобильного приложения**](https://github.com/users/AlekseiNarkevich/projects/4) | Нативный Android (Kotlin, Android Studio) |
 
-Все проекты привязаны к репозиторию `pchelper-infra` и открыты для
+Все проекты привязаны к репозиторию `pchelper-store` и открыты для
 просмотра, чтобы по ссылке можно было посмотреть состояние работ.
 
 Каждый проект содержит четыре списка: **To do → In progress → To check → Done**.
@@ -2676,7 +2676,7 @@ git log --all --pretty=format:"%ad" --date=format:"%u" | sort | uniq -c
 
 **Как читать эти цифры.** Задание 6 — инфраструктура лабораторной
 работы — выполнялось одним участником в отдельном учебном стенде
-`pchelper-infra`, поэтому все 27 коммитов принадлежат Наркевичу А. С.
+`pchelper-store`, поэтому все 27 коммитов принадлежат Наркевичу А. С.
 Из них 26 — обычные коммиты, и ещё 1 — merge-коммит слияния `main`;
 именно поэтому на странице **Insights → Contributors** GitHub показывает
 26 коммитов: виджет считает вклад в `main` и по условию исключает
@@ -2705,7 +2705,7 @@ Sub modules, Usage, Contributing.
 | **Project Name** | PCHelper |
 | **Description** | Интернет-магазин компьютерных комплектующих и готовых ПК с конфигуратором сборки. Позволяет подобрать совместимые комплектующие по 8 правилам, оформить заказ и отследить его статус. Интегрирован с AI-ассистентом через протокол MCP. |
 | **Installation** | Три варианта: Docker Compose (рекомендуется), локальный запуск через npm, запуск на Render |
-| **Sub modules** | Ссылка на репозиторий `pchelper-infra` с кратким описанием и перечень репозиториев, которые появятся при переносе стенда в курсовую работу |
+| **Sub modules** | Ссылка на репозиторий `pchelper-store` с кратким описанием и перечень репозиториев, которые появятся при переносе стенда в курсовую работу |
 | **Usage** | Пошаговая инструкция: регистрация → конфигуратор → корзина → заказ → отслеживание; скриншоты интерфейса |
 | **Contributing** | Состав команды, распределение задач, соглашение о ветках и коммитах |
 
@@ -2732,7 +2732,7 @@ Sub modules, Usage, Contributing.
 
 | Репозиторий | Описание |
 |-------------|----------|
-| [pchelper-infra](https://github.com/AlekseiNarkevich/pchelper-store) | Документация лабораторной работы, Docker-окружение, CI/CD, SonarQube, развёртывание |
+| [pchelper-store](https://github.com/AlekseiNarkevich/pchelper-store) | Документация лабораторной работы, Docker-окружение, CI/CD, SonarQube, развёртывание |
 | Серверное приложение и API | Появится при переносе стенда в курсовую работу |
 | Веб-клиент | Появится при переносе стенда в курсовую работу |
 | Мобильный клиент | Появится при переносе стенда в курсовую работу |
@@ -3097,7 +3097,7 @@ Sub modules, Usage, Contributing.
 
 | № | Раздел отчёта | Что должно быть на снимке | Где взять |
 |---|----------------|---------------------------|-----------|
-| 43 | 7.4. Структура GitHub Pages | главная страница сайта GitHub Pages `pchelper-infra` с навигационной панелью и плитками разделов. | открыть https://alekseinarkevich.github.io/pchelper-store/ в браузере. |
+| 43 | 7.4. Структура GitHub Pages | главная страница сайта GitHub Pages `pchelper-store` с навигационной панелью и плитками разделов. | открыть https://alekseinarkevich.github.io/pchelper-store/ в браузере. |
 
 
 ## Приложение В. Что нужно сделать самостоятельно
@@ -3113,7 +3113,7 @@ Sub modules, Usage, Contributing.
 
 Всё остальное к этому моменту уже выполнено и проверено: 14 диаграмм
 отрендерены, SQL-скрипты прогнаны на PostgreSQL 15, MCP-сервер проходит
-39 тестов, конвейер в репозитории `pchelper-infra` проходит целиком,
+39 тестов, конвейер в репозитории `pchelper-store` проходит целиком,
 сервис развёрнут на Render по адресу `https://pchelper-infra.onrender.com`,
 вики из 9 страниц опубликована, сайт GitHub Pages из 10 страниц доступен
 по адресу `https://alekseinarkevich.github.io/pchelper-store/`.

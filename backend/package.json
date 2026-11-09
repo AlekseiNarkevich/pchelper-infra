@@ -1,5 +1,5 @@
 ﻿{
-  "name": "pchelper-infra-backend",
+  "name": "pchelper-store-backend",
   "version": "1.0.0",
   "private": true,
   "description": "PCHelper — backend интернет-магазина комплектующих (ЛР7)",
